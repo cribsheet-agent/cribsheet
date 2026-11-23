@@ -63,3 +63,21 @@ Open questions before hour 0:
 
 1. The checker should also test names: an event or function named in the notes must exist in the factory's verified ABI, otherwise it is cracked.
 2. With this model and an 8-call budget, Self does not get a correct call of its own to learn from. Whether the rewrite may see the key script's actual calls (they are public in `exam/`) is a design choice: it makes Self learn faster, and it narrows the gap to Manual.
+
+## Run 4 · 24 November 2026, hours 9 to 11
+
+First run with everything from PRs #6, #8 and #9: the factory address in the shared prompt; key sources, key calls and cracked lines in Self's notes rewrite; names checked against the factory's verified ABI.
+
+| Hour | Window (blocks) | Blank | Manual | Self | Crowd | Cost |
+|---|---|---|---|---|---|---|
+| 9 | — | missed | | | | |
+| 10 | — | missed | | | | |
+| 11 | 121,603,404 – 121,638,184 | 0 | 5 / 8 | 0 | 0 | $0.26 |
+
+Hours 9 and 10 failed on their first network call ("fetch failed"); the machine was awake. The runner now retries a network error for up to ten minutes before it records a missed hour, and the missed reason includes the network cause.
+
+Hour 11:
+
+- Manual answers curve, creator and the launch count in 2 or 3 calls. It misses launch block both times (8 of 8 calls used) and creator tax.
+- Self, Blank and Crowd score 0. Self answered from the notes it wrote after hour 6, and the checker marked 4 of their 5 items cracked (`TokenCreated`, `Launch`, `bondingCurve`, `creatorTax`).
+- Self's rewrite after hour 11 is the first that matches the chain: the factory address, the `TokenLaunched` topic, the `getLaunchedToken(address)` selector and the word layout (word 1 curve, word 2 deployer, word 8 creator tax), all of which it saw in the key calls. It still contains one wrong line (word 0 is the token, not padding) and an EIP-1967 proxy section that does not apply to the factory, and it still calls everything "confirmed on-chain this hour". The checker will mark it before hour 12.
