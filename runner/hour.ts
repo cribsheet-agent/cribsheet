@@ -67,7 +67,7 @@ export async function runHour(opts: { dir: string; cfg: ModelConfig; at?: number
     hour, status: 'graded', start_block, end_block, key_block, level: state.level, model: cfg.model, seed: gen.seed,
     score,
     questions: gen.questions.map((q: Question, i) => ({
-      id: q.id, kind: q.kind, level: q.level, official: q.official, text: q.text, key: q.key, key_sources: q.key_sources, budget: q.budget,
+      id: q.id, kind: q.kind, level: q.level, official: q.official, text: q.text, key: q.key, key_sources: q.key_sources, key_calls: q.key_calls, budget: q.budget,
       answers: Object.fromEntries(ARMS.map(a => {
         const x = attempts[a][i]!;
         return [a, { answer: normalise(q.format, x.answer) ?? x.answer, correct: isCorrect(q, x.answer), calls: x.calls.length, stopped: x.stopped }];

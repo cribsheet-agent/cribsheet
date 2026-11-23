@@ -25,6 +25,7 @@
           "text": { "type": "string" },
           "key": { "type": "string" },
           "key_sources": { "type": "array", "items": { "type": "string" } },
+          "key_calls": { "type": "array", "items": { "type": "string" } },
           "answers": {
             "type": "object",
             "propertyNames": { "enum": ["blank", "manual", "self", "crowd"] },
