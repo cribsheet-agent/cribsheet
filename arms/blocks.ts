@@ -1,18 +1,16 @@
 // The last block of the prompt: the only thing that differs between the four arms.
-import { readFileSync } from 'node:fs';
+import { MANUAL } from './manual.gen.ts';
 
 export type Arm = 'blank' | 'manual' | 'self' | 'crowd';
 export const ARMS: Arm[] = ['blank', 'manual', 'self', 'crowd'];
 export const NOTES_MAX_WORDS = 300;
-
-const manual = readFileSync(new URL('./manual.md', import.meta.url), 'utf8');
 
 export function lastBlock(arm: Arm, selfNotes: string, lessons: string[]): string {
   switch (arm) {
     case 'blank':
       return 'You have no notes.';
     case 'manual':
-      return `Reference manual:\n\n${manual}`;
+      return `Reference manual:\n\n${MANUAL}`;
     case 'self':
       return selfNotes.trim() ? `Your notes from earlier hours:\n\n${selfNotes.trim()}` : 'Your notes from earlier hours: none yet.';
     case 'crowd': {

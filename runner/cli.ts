@@ -1,8 +1,11 @@
 // Local runner: node runner/cli.ts [--dir data] [--model @cf/openai/gpt-oss-120b] [--hours 1]
-// Needs CF_ACCOUNT_ID and CF_API_TOKEN for Workers AI.
+// Needs CF_ACCOUNT_ID and CF_API_TOKEN for Workers AI. Optional CF_API_TOKEN_CMD: a shell
+// command that prints a fresh token, for short-lived tokens.
+import { execSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { workersAi } from '../lib/model.ts';
 import { recordMissed, runHour } from './hour.ts';
+import { fsStore } from './fs-store.ts';
 
 const { values } = parseArgs({ options: {
   dir: { type: 'string', default: 'data' },
@@ -10,7 +13,10 @@ const { values } = parseArgs({ options: {
   hours: { type: 'string', default: '1' },
 } });
 
-const cfg = workersAi(values.model!);
+const account = process.env.CF_ACCOUNT_ID, token = process.env.CF_API_TOKEN, cmd = process.env.CF_API_TOKEN_CMD;
+if (!account || !token) throw new Error('set CF_ACCOUNT_ID and CF_API_TOKEN (Workers AI)');
+const cfg = workersAi(values.model!, account, token, cmd ? () => execSync(cmd, { encoding: 'utf8' }).trim() : undefined);
+const store = fsStore(values.dir!);
 for (let i = 0; i < Number(values.hours); i++) {
   if (i > 0) {
     // wait for the next full hour plus a minute, so the window has closed
@@ -23,7 +29,7 @@ for (let i = 0; i < Number(values.hours); i++) {
   const startedAt = Date.now();
   for (;;) {
     try {
-      out = await runHour({ dir: values.dir!, cfg, log: s => console.log(s) });
+      out = await runHour({ store, cfg, log: s => console.log(s) });
       break;
     } catch (e) {
       const reason = describe(e);
@@ -32,7 +38,7 @@ for (let i = 0; i < Number(values.hours); i++) {
         await new Promise(r => setTimeout(r, 60_000));
         continue;
       }
-      const hour = recordMissed(values.dir!, reason);
+      const hour = await recordMissed(store, reason);
       console.error(`hour ${hour} missed: ${reason}`);
       break;
     }
