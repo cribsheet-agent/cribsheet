@@ -14,7 +14,7 @@
     "hour": "node runner/cli.ts"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20261109.1",
+    "@cloudflare/workers-types": "5.20261120.1",
     "@types/node": "24.10.1",
     "typescript": "5.9.3",
     "wrangler": "4.159.0"
