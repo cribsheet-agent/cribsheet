@@ -1,0 +1,43 @@
+// The cribsheet.pro Worker: site, public record under /data/, and the hourly exam (Workflow).
+{
+  "name": "cribsheet",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./site/public", "binding": "ASSETS", "run_worker_first": ["/data/*"] },
+  "r2_buckets": [{ "binding": "DATA", "bucket_name": "cribsheet-data" }],
+  "ai": { "binding": "AI" },
+  "vars": { "MODEL": "@cf/openai/gpt-oss-120b" },
+  "workflows": [
+    {
+      "name": "cribsheet-hour",
+      "binding": "HOUR",
+      "class_name": "ExamHour"
+      // "schedules": ["1 * * * *"] starts the exam: one instance at minute 1 of every hour.
+      // It is added when hour 0 is due, not before.
+    }
+  ],
+  "observability": { "enabled": true },
+  // no *.workers.dev or preview URLs: the account subdomain is not part of the public site
+  "workers_dev": false,
+  "preview_urls": false,
+  // Creates the DNS records on deploy. The zone must be Active in this Cloudflare account.
+  "routes": [
+    { "pattern": "cribsheet.pro", "custom_domain": true },
+    { "pattern": "www.cribsheet.pro", "custom_domain": true }
+  ],
+  // Staging: same code, its own bucket and Workflow, no public URL. Test hours are started with
+  // `wrangler workflows trigger cribsheet-hour-staging --env staging` and read from R2.
+  "env": {
+    "staging": {
+      "name": "cribsheet-staging",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "r2_buckets": [{ "binding": "DATA", "bucket_name": "cribsheet-data-staging" }],
+      "ai": { "binding": "AI" },
+      "vars": { "MODEL": "@cf/openai/gpt-oss-120b" },
+      "workflows": [{ "name": "cribsheet-hour-staging", "binding": "HOUR", "class_name": "ExamHour" }]
+    }
+  }
+}
