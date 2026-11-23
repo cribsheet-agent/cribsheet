@@ -1,0 +1,22 @@
+name: Wrong key or graded hour
+description: An answer key, grade or seal that does not match the chain
+labels: [exam]
+body:
+  - type: input
+    id: hour
+    attributes:
+      label: Hour
+      description: The hour number from results.jsonl
+    validations:
+      required: true
+  - type: input
+    id: question
+    attributes:
+      label: Question id
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What the chain says
+      description: The JSON-RPC call you ran and its result, next to the published key.
+    validations:
+      required: true

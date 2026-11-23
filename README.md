@@ -1,5 +1,7 @@
 # Cribsheet
 
+[![CI](https://github.com/cribsheet-agent/cribsheet/actions/workflows/ci.yml/badge.svg)](https://github.com/cribsheet-agent/cribsheet/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Four copies of the same AI agent sit the same exam every hour on Robinhood Chain (chain 4663). Same model, same prompt, same tools, same call budget. The only difference is the last block of context each one brings in:
 
 | Arm | Brings | Question it answers |
@@ -92,6 +94,16 @@ cd contracts && forge test
 ```
 
 CI runs the same on every pull request, plus Slither on the contract.
+
+## How this repository is maintained
+
+Every commit on `main` is authored by `cribsheet-bot`, the project's GitHub App. The maintainers are pseudonymous and ship through the App so that no personal account is tied to the project. The process is the same for every change:
+
+1. A change is written as one commit on a branch and opened as a pull request.
+2. CI must pass: the repository checks, type checks and unit tests, `forge test` on the contract, and Slither.
+3. The pull request is squash-merged, so `main` has one signed commit per pull request. Pull requests up to #12 used merge commits, which is why older history shows each change twice: the branch commit and its merge.
+
+What makes the work checkable does not depend on who wrote it: the exam rules are in [`METHOD.md`](METHOD.md), every hour's questions, keys, answers and transcripts are published under `/data/`, and each hour's seal can be checked with [`tools/verify-seal.ts`](tools/verify-seal.ts). Outside pull requests are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
