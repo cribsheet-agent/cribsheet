@@ -10,7 +10,7 @@ Every hour, in this order. Each step writes to the public record.
 2. **Keys.** A script reads every key from logs and contract calls at the chain head (the *key block*) before any agent starts. Every key except creator tax is read two independent ways (see the table below). If the two disagree, the question is dropped and the drop is recorded.
 3. **Answers.** The four arms answer at the same time with the same tools and the same call budget. Every tool call is kept.
 4. **Grading.** Exact match after normalising addresses (lowercase), numbers (integer strings) and yes/no. A block number off by one is wrong. Fewer tool calls breaks ties.
-5. **Notes.** Self rewrites its notes (at most 300 words) from its own questions, answers, the keys and its tool calls. Before the next exam the checker marks every event topic, 4-byte selector and address in those notes.
+5. **Notes.** Self rewrites its notes (at most 300 words) from its own questions, answers, the keys, how each key was read (the key sources, not the key script's calls), its tool calls, and the fact check of its current notes with every cracked line listed. Before the next exam the checker marks every event topic, 4-byte selector and address in the new notes.
 6. **Seal.** The hour's bytes are hashed and the hash is written on chain once. Nobody can change it after.
 
 A missed hour is recorded as missed, with the reason. It is never back-filled.
@@ -63,7 +63,7 @@ Level goes up when the best arm scores at least 85% for 6 hours in a row, and do
 
 ## The arms
 
-All four share one model (picked in the F0 test run, temperature 0, served by Cloudflare Workers AI), one system prompt ([`arms/prompt.ts`](arms/prompt.ts)), three tools ([`arms/tools.ts`](arms/tools.ts): `rpc` read-only JSON-RPC, `keccak`, `answer`) and one budget. The last block ([`arms/blocks.ts`](arms/blocks.ts)) is the only difference:
+All four share one model (picked in the F0 test run, temperature 0, served by Cloudflare Workers AI), one system prompt ([`arms/prompt.ts`](arms/prompt.ts), which names the factory address), three tools ([`arms/tools.ts`](arms/tools.ts): `rpc` read-only JSON-RPC, `keccak`, `answer`) and one budget. The last block ([`arms/blocks.ts`](arms/blocks.ts)) is the only difference:
 
 | Arm | Last block |
 |---|---|
