@@ -21,6 +21,8 @@ export interface Question {
   format: 'address' | 'integer' | 'yesno';
   key: string;
   key_sources: string[];
+  /** The JSON-RPC calls behind the key, with this question's parameters; public after grading. */
+  key_calls: string[];
   budget: number;
 }
 

@@ -3,7 +3,8 @@
 // readings disagree the question is dropped and the drop is recorded.
 import { blockAtOrAfter, blockTime, getLogs, rpc, num } from '../lib/rpc.ts';
 import { keccakText } from '../lib/keccak.ts';
-import { FACTORY, TOPIC, graduationsBetween, launchedToken, launchesBetween, type Launch } from './pons.ts';
+import { encodeAddress } from '../lib/abi.ts';
+import { FACTORY, SEL, TOPIC, graduationsBetween, launchedToken, launchesBetween, type Launch } from './pons.ts';
 import { Rand } from './rand.ts';
 import { KIND_LEVEL, LEVEL_BUDGET, type Dropped, type ExamWindow, type Kind, type Question } from './types.ts';
 
@@ -72,13 +73,14 @@ export async function generate(opts: { hour: number; level: number; start_block:
   }
   return { window, seed, questions, dropped };
 
-  async function build(kind: Kind): Promise<Pick<Question, 'text' | 'format' | 'key' | 'key_sources'>> {
+  async function build(kind: Kind): Promise<Pick<Question, 'text' | 'format' | 'key' | 'key_sources' | 'key_calls'>> {
     switch (kind) {
       case 'curve': {
         const l = freshToken();
         const onChain = await launchedToken(l.token, 'latest');
         agree(l.curve, onChain.curve, 'curve');
         return { format: 'address', key: l.curve, key_sources: ['TokenLaunched topic 2', 'getLaunchedToken(token).curve'],
+          key_calls: [launchLog(l), launchedCall(l.token, 'word 1 is the curve')],
           text: `What is the bonding curve address of token ${l.token}, launched on the Pons launch factory? Answer with the address.` };
       }
       case 'creator': {
@@ -86,6 +88,7 @@ export async function generate(opts: { hour: number; level: number; start_block:
         const onChain = await launchedToken(l.token, 'latest');
         agree(l.deployer, onChain.deployer, 'deployer');
         return { format: 'address', key: l.deployer, key_sources: ['TokenLaunched topic 3', 'getLaunchedToken(token).deployer'],
+          key_calls: [launchLog(l), launchedCall(l.token, 'word 2 is the deployer')],
           text: `Which address deployed token ${l.token} through the Pons launch factory? Answer with the address.` };
       }
       case 'launch_block': {
@@ -93,12 +96,14 @@ export async function generate(opts: { hour: number; level: number; start_block:
         const receipt = await rpc<{ blockNumber: string }>('eth_getTransactionReceipt', [l.tx]);
         agree(String(l.block), String(num(receipt.blockNumber)), 'launch block');
         return { format: 'integer', key: String(l.block), key_sources: ['TokenLaunched log block', 'launch transaction receipt'],
+          key_calls: [launchLog(l) + ', blockNumber of the log', `eth_getTransactionReceipt ["${l.tx}"] -> blockNumber`],
           text: `In which block was token ${l.token} launched on the Pons launch factory? Answer with the block number.` };
       }
       case 'creator_tax': {
         const l = freshToken();
         const t = await launchedToken(l.token, 'latest');
         return { format: 'integer', key: String(t.creatorTaxBps), key_sources: ['getLaunchedToken(token).creatorTaxBps'],
+          key_calls: [launchedCall(l.token, 'word 8 is creatorTaxBps')],
           text: `What creator tax, in basis points, does token ${l.token} have on the Pons launch factory as of block ${key_block}? Answer with an integer.` };
       }
       case 'graduated': {
@@ -117,6 +122,7 @@ export async function generate(opts: { hour: number; level: number; start_block:
         const byPhase = (await launchedToken(token, 'latest')).phase === 2;
         agree(String(byLog), String(byPhase), 'graduated');
         return { format: 'yesno', key: byLog ? 'yes' : 'no', key_sources: ['PoolGraduated log for the token', 'getLaunchedToken(token).phase == 2'],
+          key_calls: [`eth_getLogs ${JSON.stringify({ address: FACTORY, topics: [TOPIC.PoolGraduated, topicOf(token)], fromBlock: hexb(sinceBlock), toBlock: hexb(key_block) })} -> any log means yes`, launchedCall(token, 'word 10 is the phase, 2 means graduated')],
           text: `As of block ${key_block}, has token ${token} graduated from its Pons bonding curve? Answer yes or no.` };
       }
       case 'hour_launch_count': {
@@ -125,6 +131,7 @@ export async function generate(opts: { hour: number; level: number; start_block:
         const local = all.filter(l => l.topics[0] === TOPIC.TokenLaunched).length;
         agree(String(filtered), String(local), 'launch count');
         return { format: 'integer', key: String(filtered), key_sources: ['eth_getLogs filtered by TokenLaunched topic', 'all factory logs counted locally'],
+          key_calls: [`eth_getLogs ${JSON.stringify({ address: FACTORY, topics: [TOPIC.TokenLaunched], fromBlock: hexb(start_block), toBlock: hexb(end_block) })} -> count`],
           text: `How many tokens did the Pons launch factory launch from block ${start_block} to block ${end_block}, both included? Answer with an integer.` };
       }
       case 'creator_24h':
@@ -139,11 +146,20 @@ export async function generate(opts: { hour: number; level: number; start_block:
         const byScan = countSince(l.deployer, from);
         agree(String(byTopic), String(byScan), 'launches by deployer');
         return { format: 'integer', key: String(byTopic), key_sources: ['eth_getLogs filtered by deployer topic', 'all launches of the last 7 days filtered locally by deployer'],
+          key_calls: [launchLog(l) + ', topic 3 is the deployer', `eth_getLogs ${JSON.stringify({ address: FACTORY, topics: [TOPIC.TokenLaunched, null, null, topicOf(l.deployer)], fromBlock: hexb(from), toBlock: hexb(key_block) })} in ranges of at most 1,000,000 blocks -> count`],
           text: `How many tokens did the deployer of token ${l.token} launch on the Pons launch factory from block ${from} to block ${key_block}, both included? Answer with an integer.` };
       }
     }
   }
 }
+
+const hexb = (n: number): string => '0x' + n.toString(16);
+const topicOf = (address: string): string => '0x' + encodeAddress(address);
+// The calls behind a key, written the way the rpc tool takes them, so they can be replayed.
+const launchLog = (l: Launch): string =>
+  `eth_getLogs ${JSON.stringify({ address: FACTORY, topics: [TOPIC.TokenLaunched, topicOf(l.token)], fromBlock: hexb(l.block), toBlock: hexb(l.block) })} -> the TokenLaunched log`;
+const launchedCall = (token: string, read: string): string =>
+  `eth_call [${JSON.stringify({ to: FACTORY, data: SEL.getLaunchedToken + encodeAddress(token) })}, "latest"] -> getLaunchedToken(token), ${read} (32-byte words from 0)`;
 
 function agree(a: string, b: string, what: string): void {
   if (a.toLowerCase() !== b.toLowerCase()) throw new Error(`two readings of ${what} disagree: ${a} vs ${b}`);
