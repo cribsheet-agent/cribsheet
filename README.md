@@ -25,8 +25,10 @@ Pre-launch. Hour 0 has not run.
 | Question generator and key readers (Pons factory) | built, tested on live chain data | [`exam/`](exam/) |
 | Arm prompts, tools and the Manual | built | [`arms/`](arms/) |
 | Notes fact checker | built | [`checker/`](checker/) |
-| Hourly runner | local runner built (F0); Worker + cron not built (F1) | [`runner/`](runner/) |
-| Seal contract | not deployed | `contracts/` (F1) |
+| Hourly runner | local runner (F0) and Worker + Workflow built; the hourly schedule is not switched on | [`runner/`](runner/), [`worker/`](worker/) |
+| Public record `/data/` | served by the Worker from R2; empty until hour 0 | [`worker/`](worker/), [`spec/`](spec/) |
+| Seal contract | written and tested; not deployed | [`contracts/`](contracts/) |
+| Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
 | Lessons contract, Ask API | not built | F2 |
 | $CRIBSHEET | not launched, no contract address | — |
 
@@ -42,13 +44,16 @@ This table is updated in the same commit that changes a row. If the site or a po
 
 ```
 METHOD.md   exam rules: questions, keys, grading, notes, seals
-lib/        JSON-RPC client, keccak-256, ABI words, model client (no runtime dependencies)
+lib/        JSON-RPC client, keccak-256, ABI words, model client
 exam/       Pons factory readers, question generator, keys read two ways, grading
 arms/       shared prompt, the four last blocks, the Manual, tools, agent loop, notes rewrite
 checker/    fact check of the notes against the chain
-runner/     one exam hour end to end, seal bytes, local CLI
+runner/     one exam hour in three phases (prepare, answer, finish), seal bytes, local CLI
+worker/     the cribsheet.pro Worker: site, /data/ from R2, the exam hour as a Workflow
+contracts/  CribsheetSeals (Foundry) and its tests
+tools/      verify-seal: check a sealed hour against the site and the chain
 spec/       formats of the public files under /data/
-site/       cribsheet.pro (static, Cloudflare Workers assets)
+site/       cribsheet.pro static files
 test/       unit tests, with real factory logs as fixtures
 ```
 
@@ -65,13 +70,28 @@ For short-lived tokens, set `CF_API_TOKEN_CMD` to a command that prints a fresh 
 
 It reads the last full UTC hour of launches, asks the four arms, grades them, rewrites Self's notes and writes `data/results.jsonl`, `data/notes/`, `data/check/`, `data/seal/` and full transcripts.
 
+## The Worker
+
+`wrangler.jsonc` defines one Worker, `cribsheet`: the static site, `/data/*` read from the R2 bucket `cribsheet-data`, and the Workflow `cribsheet-hour` (class `ExamHour` in [`worker/index.ts`](worker/index.ts)). One Workflow instance is one exam hour; preparing, every answer, finishing and sealing are separate steps, each retried on failure. The model is called through the Workers AI binding.
+
+```
+npx wrangler deploy                      # site + Worker
+npx wrangler deploy --env staging        # same code, own bucket, no public URL
+npx wrangler workflows trigger cribsheet-hour-staging --env staging   # one test hour
+```
+
+The hourly schedule (`"schedules": ["1 * * * *"]` on the Workflow) is added when hour 0 is due. Sealing on chain needs `SEALS_ADDRESS` (a var) and `SEAL_KEY` (a secret); without them hours are graded and their seal bytes published, but not sealed.
+
+The Worker needs its own Robinhood Chain RPC endpoint as the secret `RPC_URL`: the public endpoint answers `eth_getLogs` from Cloudflare's network with HTTP 429 (measured 24 November 2026), and the exam reads keys from logs. Local runs use the public endpoint, or `CRIBSHEET_RPC`.
+
 ## Checks
 
 ```
-node scripts/check.mjs && npx tsc --noEmit && node --test 'test/*.test.ts'
+node scripts/check.mjs && node scripts/embed.mjs --check && npx tsc --noEmit && npx tsc --noEmit -p worker && node --test 'test/*.test.ts'
+cd contracts && forge test
 ```
 
-CI runs the same on every pull request.
+CI runs the same on every pull request, plus Slither on the contract.
 
 ## License
 

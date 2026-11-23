@@ -87,7 +87,7 @@ Cracked lines stay visible on the site. They are not deleted from the history.
 
 ## Seal
 
-`CribsheetSeals.seal(hour, root)` can be called once per hour and never again for that hour. `root` is the SHA-256 of the hour's results file plus the four context blocks the arms read. The same bytes are served at `/data/seal/<hour>`, so anyone can recompute the hash and compare it with the chain. See [`spec/seal.md`](spec/seal.md).
+[`CribsheetSeals`](contracts/src/CribsheetSeals.sol)`.seal(hour, root)` can be called once per hour and never again for that hour, only by the sealer fixed at deployment. `root` is the SHA-256 of the hour's results file plus the four context blocks the arms read. The same bytes are served at `/data/seal/<hour>`, so anyone can recompute the hash and compare it with the chain. See [`spec/seal.md`](spec/seal.md).
 
 ## Lessons (F2)
 

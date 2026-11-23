@@ -1,6 +1,11 @@
 // Minimal JSON-RPC client for Robinhood Chain with retries and log-range chunking.
 
-export const RPC_URL = process.env.CRIBSHEET_RPC ?? 'https://rpc.mainnet.chain.robinhood.com';
+export const PUBLIC_RPC = 'https://rpc.mainnet.chain.robinhood.com';
+// Local runs: CRIBSHEET_RPC or the public endpoint. The Worker sets its own with setRpcUrl,
+// because the public endpoint refuses eth_getLogs from Cloudflare's network.
+let rpcUrl = (typeof process !== 'undefined' && process.env?.CRIBSHEET_RPC) || PUBLIC_RPC;
+export const setRpcUrl = (url: string): void => { rpcUrl = url; };
+export const getRpcUrl = (): string => rpcUrl;
 
 export interface Log {
   address: string;
@@ -18,7 +23,7 @@ export class RpcError extends Error {
 
 let nextId = 1;
 
-export async function rpc<T = unknown>(method: string, params: unknown[], url = RPC_URL): Promise<T> {
+export async function rpc<T = unknown>(method: string, params: unknown[], url = rpcUrl): Promise<T> {
   let last: unknown;
   for (let attempt = 0; attempt < 4; attempt++) {
     try {

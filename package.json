@@ -4,7 +4,9 @@
   "type": "module",
   "description": "Four identical AI agents sit an hourly on-chain exam on Robinhood Chain. Only their notes differ.",
   "license": "MIT",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "test": "node --test test/*.test.ts",
     "check": "node scripts/check.mjs",
@@ -12,7 +14,12 @@
     "hour": "node runner/cli.ts"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261109.1",
+    "@types/node": "24.10.1",
     "typescript": "5.9.3",
-    "@types/node": "24.10.1"
+    "wrangler": "4.159.0"
+  },
+  "dependencies": {
+    "viem": "2.57.17"
   }
 }

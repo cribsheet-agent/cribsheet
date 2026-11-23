@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["lib", "exam", "arms", "checker", "runner", "test"]
+  "include": ["lib", "exam", "arms", "checker", "runner", "test", "tools"]
 }
