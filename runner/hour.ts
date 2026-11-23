@@ -57,7 +57,7 @@ export async function runHour(opts: { dir: string; cfg: ModelConfig; at?: number
 
   // Self rewrites its notes from this hour
   const selfHour = gen.questions.map((q, i) => ({ q, a: attempts.self[i]!, correct: isCorrect(q, attempts.self[i]!.answer) }));
-  const rewrite = await rewriteNotes(cfg, state.self_notes, selfHour);
+  const rewrite = await rewriteNotes(cfg, state.self_notes, selfHour, check);
 
   const arms = Object.fromEntries(ARMS.map(a => [a, sum(attempts[a].flatMap(x => x.usage))]));
   const notes_rewrite = sum([rewrite.usage]);
