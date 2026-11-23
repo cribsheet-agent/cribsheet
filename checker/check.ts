@@ -7,17 +7,17 @@
 //    verified ABI or ERC-20 has them; a function named with no ABI match is tried on chain by its
 //    selector; an event named with no ABI match is cracked unless its full signature is given
 //    and its hash shows up in the logs.
-import { readFileSync } from 'node:fs';
 import { blockNumber, ethCall, getLogs, rpc } from '../lib/rpc.ts';
 import { encodeAddress } from '../lib/abi.ts';
 import { keccakText, selector } from '../lib/keccak.ts';
 import { FACTORY, launchedToken } from '../exam/pons.ts';
+import { FACTORY_ABI_ITEMS } from './factory-abi.gen.ts';
 
 export type Mark = 'seen' | 'cracked' | 'untestable';
 export interface CheckedItem { kind: 'topic' | 'selector' | 'address' | 'name'; value: string; mark: Mark; line: string }
 
 interface AbiItem { type: 'event' | 'function'; signature: string }
-const FACTORY_ABI: AbiItem[] = JSON.parse(readFileSync(new URL('./factory-abi.json', import.meta.url), 'utf8')).items;
+const FACTORY_ABI = FACTORY_ABI_ITEMS as readonly AbiItem[];
 const ERC20: AbiItem[] = [
   ...['Transfer(address,address,uint256)', 'Approval(address,address,uint256)'].map(signature => ({ type: 'event' as const, signature })),
   ...['name()', 'symbol()', 'decimals()', 'totalSupply()', 'balanceOf(address)', 'allowance(address,address)',
