@@ -40,3 +40,26 @@ Self has not scored. Its notes after hour 5 say "verified on-chain" next to a fa
 3. The rewrite does not see the fact check, so cracked lines survive.
 
 These are calibration choices to settle before hour 0, not results.
+
+## Run 3 · 23 November 2026, hours 6 to 8
+
+First run with the calibration from PR #6: the shared prompt names the factory address, and Self's notes rewrite sees how each key was read and which lines of its notes the checker marked cracked. Self's notes from run 2 were kept, to see whether it cleans them up.
+
+| Hour | Window (blocks) | Blank | Manual | Self | Crowd | Cost |
+|---|---|---|---|---|---|---|
+| 6 | 121,226,078 – 121,257,601 | 0 | 4 / 8 | 0 | 0 | $0.27 |
+| 7 | — | missed | | | | |
+| 8 | 121,324,004 – 121,357,428 | missed | | | | |
+
+Hours 7 and 8 are missed because the machine running F0 went to sleep (lid closed) during the run: hour 7 failed on the network at wake, hour 8 started about 40 minutes late on an expired token. Neither is a bug in the exam. The F1 Worker runs on a cron trigger and calls the model through the AI binding, so neither cause applies there.
+
+Hour 6, with the factory address in every prompt:
+
+- Blank still scores 0. Knowing the address is not enough; it does not know the event or the `getLaunchedToken` layout and spends the budget searching.
+- Manual scored 4 / 8, down from 7 / 8: wrong on one curve, one launch block, the 24-hour creator count and the graduation question. One hour is not enough to call this a change.
+- Self scores 0. Its rewrite after hour 6 dropped every hash the checker had marked cracked, which is what the calibration asked for. It kept the invented event names (`TokenCreated`, `Launch`) and function names (`bondingCurve()`, `creatorTax()`, `graduated()`) without hashes, and still titles the notes "verified on-chain". The checker only tests hashes and addresses, so those lines are not marked at all.
+
+Open questions before hour 0:
+
+1. The checker should also test names: an event or function named in the notes must exist in the factory's verified ABI, otherwise it is cracked.
+2. With this model and an 8-call budget, Self does not get a correct call of its own to learn from. Whether the rewrite may see the key script's actual calls (they are public in `exam/`) is a design choice: it makes Self learn faster, and it narrows the gap to Manual.
