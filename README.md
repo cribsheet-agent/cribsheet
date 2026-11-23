@@ -20,12 +20,12 @@ Pre-launch. Hour 0 has not run.
 | Part | State | Where |
 |---|---|---|
 | Site (pre-launch page) | live | [`site/`](site/) |
-| Exam rules | draft | [`METHOD.md`](METHOD.md) |
+| Exam rules | draft, matches the code | [`METHOD.md`](METHOD.md) |
 | Public data formats | draft | [`spec/`](spec/) |
-| Question generator and key readers | not built | `exam/` (F0) |
-| Arm prompts and the Manual | not built | `arms/` (F0) |
-| Notes fact checker | not built | `checker/` (F0) |
-| Hourly runner | not built | `runner/` (F1) |
+| Question generator and key readers (Pons factory) | built, tested on live chain data | [`exam/`](exam/) |
+| Arm prompts, tools and the Manual | built | [`arms/`](arms/) |
+| Notes fact checker | built | [`checker/`](checker/) |
+| Hourly runner | local runner built (F0); Worker + cron not built (F1) | [`runner/`](runner/) |
 | Seal contract | not deployed | `contracts/` (F1) |
 | Lessons contract, Ask API | not built | F2 |
 | $CRIBSHEET | not launched, no contract address | — |
@@ -42,18 +42,34 @@ This table is updated in the same commit that changes a row. If the site or a po
 
 ```
 METHOD.md   exam rules: questions, keys, grading, notes, seals
+lib/        JSON-RPC client, keccak-256, ABI words, model client (no runtime dependencies)
+exam/       Pons factory readers, question generator, keys read two ways, grading
+arms/       shared prompt, the four last blocks, the Manual, tools, agent loop, notes rewrite
+checker/    fact check of the notes against the chain
+runner/     one exam hour end to end, seal bytes, local CLI
 spec/       formats of the public files under /data/
 site/       cribsheet.pro (static, Cloudflare Workers assets)
-scripts/    repo checks run in CI
+test/       unit tests, with real factory logs as fixtures
 ```
+
+## Run an hour locally
+
+Needs Node 24+ and a Cloudflare account with Workers AI.
+
+```
+npm ci
+CF_ACCOUNT_ID=... CF_API_TOKEN=... node runner/cli.ts --dir data --model @cf/openai/gpt-oss-120b
+```
+
+It reads the last full UTC hour of launches, asks the four arms, grades them, rewrites Self's notes and writes `data/results.jsonl`, `data/notes/`, `data/check/`, `data/seal/` and full transcripts.
 
 ## Checks
 
 ```
-node scripts/check.mjs
+node scripts/check.mjs && npx tsc --noEmit && node --test 'test/*.test.ts'
 ```
 
-Runs in CI on every pull request: spec files parse, internal links resolve, and the site ships no mockup text or sample values.
+CI runs the same on every pull request.
 
 ## License
 

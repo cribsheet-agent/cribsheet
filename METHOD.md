@@ -1,16 +1,16 @@
 # Method (draft)
 
-Status: draft written before F0. Numbers marked *calibrate* are set during F0 from measured runs and the final values land here before hour 0.
+Status: draft, updated during F0 (23 November 2026). The code in `exam/`, `arms/`, `checker/` and `runner/` implements what is written here; where the two differ, that is a bug. Numbers marked *calibrate* are set from F0 runs before hour 0.
 
 ## The hour
 
 Every hour, in this order. Each step writes to the public record.
 
-1. **Questions.** Generated from the launch factory's logs for tokens launched in the hour before. Yes/no questions are balanced so that "no" is right about half the time.
-2. **Keys.** A script reads every key from logs and contract calls before any agent starts. Questions whose key needs more than a lookup are read two independent ways (for example factory logs and curve receipts). If the two disagree, the question is dropped and the drop is recorded.
+1. **Questions.** Generated from the launch factory's logs for tokens launched in the last full UTC hour. The choices come from a seed (`keccak256("cribsheet:<hour>:<hash of the hour's first block>")`), so anyone can regenerate them. Yes/no questions alternate so that "no" is right about half the time.
+2. **Keys.** A script reads every key from logs and contract calls at the chain head (the *key block*) before any agent starts. Every key except creator tax is read two independent ways (see the table below). If the two disagree, the question is dropped and the drop is recorded.
 3. **Answers.** The four arms answer at the same time with the same tools and the same call budget. Every tool call is kept.
 4. **Grading.** Exact match after normalising addresses (lowercase), numbers (integer strings) and yes/no. A block number off by one is wrong. Fewer tool calls breaks ties.
-5. **Notes.** Self rewrites its notes (at most 300 words). The checker then marks every address, event topic and 4-byte selector in the notes of Self and Crowd.
+5. **Notes.** Self rewrites its notes (at most 300 words) from its own questions, answers, the keys and its tool calls. Before the next exam the checker marks every event topic, 4-byte selector and address in those notes.
 6. **Seal.** The hour's bytes are hashed and the hash is written on chain once. Nobody can change it after.
 
 A missed hour is recorded as missed, with the reason. It is never back-filled.
@@ -26,11 +26,27 @@ The first source is the Pons launch factory on Robinhood Chain (`0x7ed5…ec7e`)
 
 Other launchpads are added only after their ABI and events are checked the same way.
 
-## Question families
+## Question kinds
 
-1. **Lookup**: bonding curve, launch block, creator, creator tax, graduated or not, launch count.
-2. **Memory**: needs data across hours, for example how many tokens a creator launched in the last 24 hours. The chain still has the answer, but the call budget is too small to find it without the right notes.
-3. **Judgement** (F3): patterns on the curve, for example how many distinct buyers in the first 20 blocks.
+| Kind | Level | Asks | Key, read two ways |
+|---|---|---|---|
+| `curve` | 1 | bonding curve of a token | `TokenLaunched` topic 2 · `getLaunchedToken(token).curve` |
+| `creator` | 1 | deployer of a token | `TokenLaunched` topic 3 · `getLaunchedToken(token).deployer` |
+| `launch_block` | 1 | launch block of a token | log block · launch transaction receipt |
+| `creator_tax` | 2 | creator tax in basis points | `getLaunchedToken(token).creatorTaxBps` (one lookup) |
+| `graduated` | 2 | yes/no, graduated as of the key block | `PoolGraduated` log for the token · `getLaunchedToken(token).phase == 2` |
+| `hour_launch_count` | 2 | launches in the hour's block range | logs filtered by topic · all factory logs counted locally |
+| `creator_24h` | 3 | launches by a token's deployer in the last 24 hours | logs filtered by deployer topic · all launches filtered locally |
+| `creator_7d` | 4 | the same over 7 days | the same |
+
+"Yes" tokens for `graduated` are drawn from graduations of the last 7 days; "no" tokens from the hour's launches. Half of the `creator_*` questions pick a deployer with more than one launch in the window, so "1" is not a safe guess.
+
+Levels 3 and 4 need data across hours. The chain still has the answer, but the budget is tight without the right notes. A judgement family (patterns on the curve) is planned for F3.
+
+## Chain limits that shape the exam
+
+- Blocks come about every 0.11 s (about 32,700 an hour).
+- The public RPC keeps historical state for `eth_call` only for recent blocks (minutes). Keys from `eth_call` are therefore read at the chain head, and questions say "as of block N" with N the key block.
 
 ## Levels and budget
 
@@ -47,7 +63,16 @@ Level goes up when the best arm scores at least 85% for 6 hours in a row, and do
 
 ## The arms
 
-All four share one model (picked in the F0 test run, temperature 0), one system prompt, three tools (`rpc` read-only JSON-RPC, `keccak`, `answer`) and one budget. The last block of the prompt is the only difference. All four prompts are published word for word in `arms/` before hour 0.
+All four share one model (picked in the F0 test run, temperature 0, served by Cloudflare Workers AI), one system prompt ([`arms/prompt.ts`](arms/prompt.ts)), three tools ([`arms/tools.ts`](arms/tools.ts): `rpc` read-only JSON-RPC, `keccak`, `answer`) and one budget. The last block ([`arms/blocks.ts`](arms/blocks.ts)) is the only difference:
+
+| Arm | Last block |
+|---|---|
+| Blank | "You have no notes." |
+| Manual | [`arms/manual.md`](arms/manual.md), frozen before hour 0 |
+| Self | its notes from earlier hours |
+| Crowd | the same notes plus lessons from holders that passed their test (none until F2) |
+
+Tool limits, the same for every arm: read-only methods only; `eth_getLogs` ranges up to 1,000,000 blocks, returning the count and at most 25 logs; long results cut to 4,000 characters. A plain-text reply gets one reminder to use a tool and costs no budget.
 
 ## Notes fact check
 
