@@ -78,9 +78,10 @@ Tool limits, the same for every arm: read-only methods only; `eth_getLogs` range
 
 Before every exam the checker reads the notes of Self and Crowd:
 
-- every event topic must appear in real logs of the factory;
-- every selector must return data from a real call;
-- each line is marked ✓ seen, ✗ cracked (never seen on chain) or ? untestable (advice, not a fact).
+- every event topic must appear in real logs of the factory, or be the hash of an event in the factory's verified ABI or ERC-20;
+- every selector must return data from a real call to the factory, a token from the hour or that token's curve;
+- every event or function written as code (`Name(...)` or a backticked `Name`) must exist in the factory's verified ABI ([`checker/factory-abi.json`](checker/factory-abi.json), from Sourcify) or ERC-20. A function that is in neither is tried on chain by its selector. An event that is in neither is cracked unless the notes give its full signature and its hash shows up in the logs. Token and curve contracts are not verified, so their events need full signatures;
+- each item is marked ✓ seen, ✗ cracked (never seen on chain) or ? untestable (an address with no code, or advice that is not a fact).
 
 Cracked lines stay visible on the site. They are not deleted from the history.
 
