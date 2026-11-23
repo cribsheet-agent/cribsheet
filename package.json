@@ -20,6 +20,6 @@
     "wrangler": "4.159.0"
   },
   "dependencies": {
-    "viem": "2.57.17"
+    "viem": "2.58.2"
   }
 }
