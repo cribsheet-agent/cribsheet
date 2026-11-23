@@ -61,6 +61,8 @@ npm ci
 CF_ACCOUNT_ID=... CF_API_TOKEN=... node runner/cli.ts --dir data --model @cf/openai/gpt-oss-120b
 ```
 
+For short-lived tokens, set `CF_API_TOKEN_CMD` to a command that prints a fresh one; the runner calls it on a 401. A failed hour is written as missed.
+
 It reads the last full UTC hour of launches, asks the four arms, grades them, rewrites Self's notes and writes `data/results.jsonl`, `data/notes/`, `data/check/`, `data/seal/` and full transcripts.
 
 ## Checks

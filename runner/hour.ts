@@ -100,3 +100,15 @@ function write(path: string, text: string) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, text);
 }
+
+/** A failed hour is written as missed, with the reason, and never back-filled. */
+export function recordMissed(dir: string, reason: string): number {
+  const statePath = join(dir, 'state.json');
+  const state: State = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : fresh();
+  const hour = state.next_hour;
+  mkdirSync(dir, { recursive: true });
+  appendFileSync(join(dir, 'results.jsonl'), JSON.stringify({ hour, status: 'missed', missed_reason: reason.slice(0, 300) }) + '\n');
+  state.next_hour = hour + 1;
+  write(statePath, JSON.stringify(state, null, 2));
+  return hour;
+}

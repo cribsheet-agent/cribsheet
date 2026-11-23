@@ -1,5 +1,6 @@
 // Chat-completions client (OpenAI-compatible). Default: Cloudflare Workers AI.
 // Usage is recorded per call so the cost of every hour can be published.
+import { execSync } from 'node:child_process';
 
 export interface ToolCall { id: string; type: 'function'; function: { name: string; arguments: string } }
 export type Message =
@@ -10,25 +11,34 @@ export interface ToolSpec { type: 'function'; function: { name: string; descript
 export interface Usage { prompt_tokens: number; completion_tokens: number; neurons?: number }
 export interface Reply { message: Extract<Message, { role: 'assistant' }>; usage: Usage }
 
-export interface ModelConfig { model: string; url: string; token: string }
+export interface ModelConfig { model: string; url: string; token: string; refresh?: () => string }
 
 export function workersAi(model: string): ModelConfig {
   const account = process.env.CF_ACCOUNT_ID, token = process.env.CF_API_TOKEN;
   if (!account || !token) throw new Error('set CF_ACCOUNT_ID and CF_API_TOKEN (Workers AI)');
-  return { model, url: `https://api.cloudflare.com/client/v4/accounts/${account}/ai/v1/chat/completions`, token };
+  // optional: a shell command that prints a fresh token, for short-lived tokens in local runs
+  const cmd = process.env.CF_API_TOKEN_CMD;
+  const refresh = cmd ? () => execSync(cmd, { encoding: 'utf8' }).trim() : undefined;
+  return { model, url: `https://api.cloudflare.com/client/v4/accounts/${account}/ai/v1/chat/completions`, token, refresh };
 }
 
 export async function chat(cfg: ModelConfig, messages: Message[], tools?: ToolSpec[], maxTokens = 2048): Promise<Reply> {
   let last: unknown;
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
+      const sentWith = cfg.token;
       const res = await fetch(cfg.url, {
         method: 'POST',
-        headers: { authorization: `Bearer ${cfg.token}`, 'content-type': 'application/json' },
+        headers: { authorization: `Bearer ${sentWith}`, 'content-type': 'application/json' },
         body: JSON.stringify({ model: cfg.model, messages, tools, temperature: 0, max_tokens: maxTokens }),
         signal: AbortSignal.timeout(120_000),
       });
       const text = await res.text();
+      if (res.status === 401 && cfg.refresh) {
+        // arms run in parallel: refresh once and let the others pick up the new token
+        if (cfg.token === sentWith) cfg.token = cfg.refresh();
+        throw new Error('model token expired, refreshed');
+      }
       if (!res.ok) throw new Error(`model HTTP ${res.status}: ${text.slice(0, 300)}`);
       const body = JSON.parse(text) as { choices?: { message: Reply['message'] }[]; usage?: Usage };
       const message = body.choices?.[0]?.message;
