@@ -99,6 +99,7 @@ export async function finish(store: Store, cfg: ModelConfig, p: Prepared, attemp
       })),
     })),
     dropped: p.dropped,
+    ...(rewrite.kept ? { notes_kept: rewrite.kept } : {}),
     cost: { arms, notes_rewrite, neurons, usd: Number(neuronsToUsd(neurons).toFixed(4)) },
   };
   const line = JSON.stringify(result);

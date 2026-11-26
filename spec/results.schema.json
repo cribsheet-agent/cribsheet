@@ -47,6 +47,10 @@
       "description": "Questions dropped because the two key readings disagreed.",
       "items": { "type": "object", "required": ["id", "reason"], "properties": { "id": { "type": "string" }, "reason": { "type": "string" } } }
     },
+    "notes_kept": {
+      "type": "string",
+      "description": "Present only when Self's notes rewrite failed (for example an empty reply) and Self keeps its previous notes for the next hour."
+    },
     "seal_tx": { "type": "string" }
   }
 }
