@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cribsheet docs: how the hourly exam works</title>
+<link rel="canonical" href="https://cribsheet.pro/docs">
+<meta name="description" content="How the Cribsheet exam works: the hour, the four arms, how keys are read from Robinhood Chain, grading, the notes fact check, the public data and how to check it yourself.">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:title" content="Cribsheet docs">
+<meta property="og:description" content="How the hourly on-chain exam works, and how to check every key yourself.">
+<meta property="og:url" content="https://cribsheet.pro/docs">
+<meta property="og:image" content="https://cribsheet.pro/assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050c08">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;650;700&family=Geist:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same tokens as the home page, so the docs read as the same object. */
+:root{
+  --ground:#050c08; --ground-2:#08150f; --panel:#07110c;
+  --ink:#e9efec; --ink-dim:#a4b3ab; --ink-faint:#7f8e86;
+  --emerald:#3bdc92; --emerald-deep:#0c4f35; --mint:#ddf7e6; --silver:#c7ced5; --wrong:#e8907b;
+  --line:#e9efec1a; --line-2:#e9efec2e;
+  --display:"Archivo", system-ui, sans-serif;
+  --body:"Geist", system-ui, sans-serif;
+  --mono:"Martian Mono", ui-monospace, monospace;
+  --gutter:clamp(16px, 3.4vw, 72px); --nav:64px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav) + 16px)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 1.0625rem/1.65 var(--body);-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--emerald);text-underline-offset:3px}
+a:hover{color:#7ff0bb}
+a,button,summary{cursor:pointer}
+:focus-visible{outline:2px solid var(--emerald);outline-offset:3px;border-radius:4px}
+.gut{padding-inline:var(--gutter)}
+h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
+p{margin:0 0 1rem}
+code{font:400 .86em var(--mono);color:var(--mint);overflow-wrap:anywhere}
+.skip{position:absolute;left:-999px;top:0}
+.skip:focus{left:12px;top:12px;z-index:50;background:var(--ink);color:var(--ground);padding:.6rem .9rem;border-radius:8px}
+
+/* header: same brand line as the home page, but links go to real pages */
+header.site{position:sticky;top:0;z-index:20;height:var(--nav);background:#050c08e6;border-bottom:1px solid var(--line)}
+header.site .gut{height:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{font:700 1.15rem var(--display);text-decoration:none;color:var(--ink);display:inline-flex;align-items:center}
+.brand img{margin-right:.5rem}
+@media (max-width:520px){.brand em{display:none}}
+.brand:hover{color:var(--ink)}
+.brand span{color:var(--emerald)}
+.brand em{font:500 .7rem var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-left:.35rem}
+nav.top{display:flex;align-items:center;gap:.2rem}
+nav.top a{display:inline-flex;align-items:center;min-height:44px;padding:0 .7rem;color:var(--ink-dim);text-decoration:none;font-size:.95rem;border-radius:8px}
+nav.top a:hover{color:var(--ink);background:var(--ground-2)}
+nav.top a[aria-current="page"]{color:var(--ink)}
+@media (max-width:560px){nav.top .wide{display:none}}
+
+/* layout: contents rail beside one reading column */
+.wrap{display:grid;grid-template-columns:230px minmax(0,46rem);gap:clamp(2rem,5vw,5rem);padding-block:clamp(2.5rem,6vw,5rem) 4rem}
+.wrap > *{min-width:0}
+.rail{position:sticky;top:calc(var(--nav) + 24px);align-self:start;max-height:calc(100dvh - var(--nav) - 48px);overflow:auto}
+.rail .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.6rem}
+.rail ol{list-style:none;margin:0;padding:0;counter-reset:s}
+.rail li{counter-increment:s}
+.rail a{display:flex;gap:.6rem;min-height:36px;align-items:center;padding:.15rem .5rem;margin-left:-.5rem;color:var(--ink-dim);text-decoration:none;font-size:.92rem;border-radius:6px}
+.rail a::before{content:counter(s,decimal-leading-zero);font:400 .7rem var(--mono);color:var(--ink-faint)}
+.rail a:hover{color:var(--ink);background:var(--ground-2)}
+.rail a.on{color:var(--ink)}
+.rail a.on::before{color:var(--emerald)}
+.toc-m{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;padding-top:1.5rem}
+  .rail{display:none}
+  .toc-m{display:block;margin-bottom:2rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+  .toc-m summary{min-height:48px;display:flex;align-items:center;padding:0 1rem;font:500 .74rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-dim)}
+  .toc-m ol{margin:0;padding:0 1rem 1rem 2.2rem}
+  .toc-m a{display:block;padding:.35rem 0;color:var(--ink-dim);text-decoration:none}
+}
+
+/* article */
+.lead h1{font-size:clamp(2.2rem,1.3rem + 3vw,3.6rem);font-weight:700;line-height:.98;letter-spacing:-.035em}
+.lead h1 span{display:block;color:var(--ink-faint)}
+.lead p{color:var(--ink-dim);font-size:1.12rem;margin-top:1.2rem;max-width:40rem}
+.facts{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin:1.6rem 0 0;padding:0;list-style:none;font:400 .8rem var(--mono);color:var(--ink-faint)}
+.facts b{font-weight:500;color:var(--ink)}
+section.d{padding-top:3.4rem;margin-top:3.4rem;border-top:1px solid var(--line)}
+section.d h2{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.2rem);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin-bottom:1.1rem}
+section.d h2 small{display:block;font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.6rem}
+section.d h3{font:650 1.1rem var(--display);margin:2rem 0 .7rem}
+.dim{color:var(--ink-dim)}
+
+/* the hour as a numbered sequence: the order is the point */
+ol.steps{list-style:none;margin:1.4rem 0 0;padding:0;counter-reset:st}
+ol.steps li{counter-increment:st;display:grid;grid-template-columns:3rem minmax(0,1fr);gap:.2rem 0;padding:1rem 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(st);font:650 1.4rem/1.2 var(--display);color:var(--emerald);grid-row:1 / span 2}
+ol.steps li > *{grid-column:2}
+ol.steps b{display:block;color:var(--ink)}
+ol.steps span{color:var(--ink-dim)}
+
+/* tables scroll inside their own box on phones */
+.tbl{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);background:#0a1a12}
+td.arm{font:500 .78rem var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+td.arm.sv{color:var(--silver)} td.arm.em{color:var(--emerald)}
+.st{font:500 .72rem var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.st.live{color:var(--emerald)} .st.not{color:var(--wrong)} .st.part{color:var(--silver)}
+
+/* code: one style, a copy button where a reader would paste it */
+.code{position:relative;margin:1.1rem 0;border:1px solid var(--line-2);border-radius:12px;background:#030805}
+.code pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;font:400 .8rem/1.7 var(--mono);color:var(--ink)}
+.code .cap{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.2rem .4rem .2rem 1.1rem;border-bottom:1px solid var(--line);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.copy{min-height:40px;padding:0 .8rem;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink-dim);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.copy:hover{color:var(--ink);border-color:var(--line-2)}
+.copy:active{background:var(--ground-2)}
+
+/* the worked example: a real hour 0 question, right and wrong side by side */
+.ex{margin:1.3rem 0;border:1px solid var(--line-2);border-radius:14px;background:var(--panel);overflow:hidden}
+.ex .q{padding:1rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex .q .k{font:500 .66rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.4rem}
+.ex dl{margin:0;display:grid;grid-template-columns:8.5rem minmax(0,1fr)}
+.ex dt,.ex dd{margin:0;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex dt{font:500 .68rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.ex dd code{color:var(--ink)}
+.ex dd.ok code{color:var(--emerald)} .ex dd.no code{color:var(--wrong)}
+.ex dl > :nth-last-child(-n+2){border-bottom:0}
+@media (max-width:560px){.ex dl{grid-template-columns:1fr}.ex dt{padding-bottom:0;border-bottom:0}}
+
+.note{margin:1.2rem 0;padding:.9rem 1.1rem;border:1px solid var(--line-2);border-radius:12px;color:var(--ink-dim);font-size:.95rem}
+.note b{color:var(--ink)}
+
+.ca{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;margin:1rem 0;padding:.8rem 1rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+.ca .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald)}
+.ca code{color:var(--ink);font-size:.82rem;flex:1 1 auto;min-width:0}
+.ca .copy{border-color:var(--line-2);min-height:44px}
+
+footer.site{border-top:1px solid var(--line);padding:1.5rem 0;font-size:.85rem;color:var(--ink-faint)}
+footer.site .gut{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.5rem;align-items:center}
+footer.site p{margin:0}
+footer.site a{color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to the docs</a>
+
+<header class="site">
+  <div class="gut">
+    <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="" width="22" height="22">Crib<span>sheet</span><em>Docs</em></a>
+    <nav class="top" aria-label="Site">
+      <a href="/">Home</a>
+      <a class="wide" href="/#record">Record</a>
+      <a href="/docs" aria-current="page">Docs</a>
+      <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="gut">
+<div class="wrap">
+  <aside class="rail" aria-label="On this page">
+    <p class="k">On this page</p>
+    <ol id="rail">
+      <li><a href="#hour">An exam hour</a></li>
+      <li><a href="#arms">The four arms</a></li>
+      <li><a href="#keys">Questions and keys</a></li>
+      <li><a href="#grading">Grading</a></li>
+      <li><a href="#notes">Notes and the fact check</a></li>
+      <li><a href="#data">Public data</a></li>
+      <li><a href="#check">Check it yourself</a></li>
+      <li><a href="#status">What is live</a></li>
+      <li><a href="#token">$CRIBSHEET</a></li>
+    </ol>
+  </aside>
+
+  <main id="doc">
+    <details class="toc-m">
+      <summary>On this page</summary>
+      <ol>
+        <li><a href="#hour">An exam hour</a></li>
+        <li><a href="#arms">The four arms</a></li>
+        <li><a href="#keys">Questions and keys</a></li>
+        <li><a href="#grading">Grading</a></li>
+        <li><a href="#notes">Notes and the fact check</a></li>
+        <li><a href="#data">Public data</a></li>
+        <li><a href="#check">Check it yourself</a></li>
+        <li><a href="#status">What is live</a></li>
+        <li><a href="#token">$CRIBSHEET</a></li>
+      </ol>
+    </details>
+
+    <div class="lead">
+      <h1>How the exam works<span>and how to check it.</span></h1>
+      <p>Four copies of the same AI agent sit the same exam every hour about what happened on Robinhood Chain in the hour before. Only the notes they bring differ. A script reads every answer key from the chain before any agent starts, so no model grades a model.</p>
+      <ul class="facts">
+        <li>Chain <b>Robinhood Chain (4663)</b></li>
+        <li>Source <b>Pons launch factory</b></li>
+        <li>Schedule <b>minute 1 of every hour, UTC</b></li>
+        <li>Live since <b>26 Nov 2026</b></li>
+      </ul>
+    </div>
+
+    <section class="d" id="hour" aria-labelledby="hour-h">
+      <h2 id="hour-h"><small>01</small>An exam hour</h2>
+      <p>At minute 1 of every UTC hour a Cloudflare Workflow examines the hour that just closed. The steps run in this order, and each one writes to the public record.</p>
+      <ol class="steps">
+        <li><b>Questions</b><span>Eight questions about tokens launched on the Pons factory in that hour. The choice comes from a seed (<code>keccak256("cribsheet:&lt;hour&gt;:&lt;hash of the hour's first block&gt;")</code>), so anyone can regenerate it.</span></li>
+        <li><b>Keys</b><span>A script reads every answer from logs and contract calls at the chain head, before any agent starts. Every key except creator tax is read two independent ways. If the two readings disagree, the question is dropped and the drop is recorded.</span></li>
+        <li><b>Answers</b><span>The four arms answer at the same time with the same model, prompt, tools and call budget. Every tool call is kept.</span></li>
+        <li><b>Grading</b><span>Each answer is compared with the key by exact match. No model is asked whether an answer is right.</span></li>
+        <li><b>Notes</b><span>Self rewrites its notes from the hour: its answers, the keys, how each key was read, and the fact check of its old notes.</span></li>
+        <li><b>Seal</b><span>The hour's bytes are published at <code>/data/seal/&lt;hour&gt;</code>. Writing their hash on chain waits for the seal contract to be deployed (see <a href="#status">What is live</a>).</span></li>
+      </ol>
+      <p class="dim" style="margin-top:1rem">A missed hour is recorded as missed, with the reason. It is never filled in later.</p>
+    </section>
+
+    <section class="d" id="arms" aria-labelledby="arms-h">
+      <h2 id="arms-h"><small>02</small>The four arms</h2>
+      <p>All four share one model (<code>@cf/openai/gpt-oss-120b</code> on Cloudflare Workers AI, temperature 0), one system prompt, three tools (<code>rpc</code> for read-only JSON-RPC, <code>keccak</code>, <code>answer</code>) and one call budget. The last block of context is the only difference.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Arm</th><th>Reads before the exam</th><th>Question it answers</th></tr></thead>
+        <tbody>
+          <tr><td class="arm sv">Blank</td><td>"You have no notes."</td><td>How far do tools alone go?</td></tr>
+          <tr><td class="arm sv">Manual</td><td>A fixed manual, frozen before hour 0</td><td>Is good documentation enough?</td></tr>
+          <tr><td class="arm em">Self</td><td>Its own notes, rewritten after every hour</td><td>Does memory beat a manual?</td></tr>
+          <tr><td class="arm em">Crowd</td><td>Self's notes plus lessons from holders that passed a test (none yet: lessons are planned)</td><td>Can people make an agent better?</td></tr>
+        </tbody>
+      </table></div>
+      <p>Tool limits are the same for every arm: read-only methods only, <code>eth_getLogs</code> returns the count and at most 25 logs, long results are cut to 4,000 characters.</p>
+    </section>
+
+    <section class="d" id="keys" aria-labelledby="keys-h">
+      <h2 id="keys-h"><small>03</small>Questions and keys</h2>
+      <p>Every question has a kind. Level 1 kinds are asked from hour 0; higher levels unlock when the best arm keeps scoring high.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Kind</th><th>Level</th><th>Asks</th><th>Key, read two ways</th></tr></thead>
+        <tbody>
+          <tr><td><code>curve</code></td><td>1</td><td>bonding curve of a token</td><td><code>TokenLaunched</code> topic 2 · <code>getLaunchedToken(token).curve</code></td></tr>
+          <tr><td><code>creator</code></td><td>1</td><td>deployer of a token</td><td><code>TokenLaunched</code> topic 3 · <code>getLaunchedToken(token).deployer</code></td></tr>
+          <tr><td><code>launch_block</code></td><td>1</td><td>launch block of a token</td><td>block of the log · block of the launch receipt</td></tr>
+          <tr><td><code>creator_tax</code></td><td>2</td><td>creator tax in basis points</td><td><code>getLaunchedToken(token).creatorTaxBps</code> (one reading)</td></tr>
+          <tr><td><code>graduated</code></td><td>2</td><td>yes or no, as of the key block</td><td><code>PoolGraduated</code> log · <code>phase == 2</code></td></tr>
+          <tr><td><code>hour_launch_count</code></td><td>2</td><td>launches in the hour</td><td>filtered logs · all factory logs counted locally</td></tr>
+          <tr><td><code>creator_24h</code></td><td>3</td><td>launches by a deployer in 24 hours</td><td>logs by deployer topic · all launches filtered</td></tr>
+          <tr><td><code>creator_7d</code></td><td>4</td><td>the same over 7 days</td><td>the same</td></tr>
+        </tbody>
+      </table></div>
+      <p>Eight questions an hour: four at the current level, two one level below and two one level above. The call budget is 8 calls per question at level 1, rising by 4 per level.</p>
+      <p>Factory: <code>0x7ed598bcef8bd9edd8c97a195c6d13f40801ec7e</code>. Launch event topic: <code>0x8d4aad4953d0ca700d468f3753aa14432d1b35b43ec6409f051fb6aa43a89607</code>.</p>
+    </section>
+
+    <section class="d" id="grading" aria-labelledby="grading-h">
+      <h2 id="grading-h"><small>04</small>Grading</h2>
+      <p>Exact match after normalising: addresses to lowercase, numbers to integer strings, yes and no to one form. A block number off by one is wrong. Fewer tool calls breaks a tie.</p>
+      <p>A real question from hour 0 (26 November 2026), and the Manual arm's answer:</p>
+      <div class="ex">
+        <div class="q"><p class="k">Hour 0 · question 3 · curve</p>What is the bonding curve address of token <code>0x6aa9…9a05</code>, launched on the Pons launch factory?</div>
+        <dl>
+          <dt>Key</dt><dd class="ok"><code>0x0ffa57c97da367731d34ed758c046a2a39d0b18f</code></dd>
+          <dt>Read from</dt><dd><code>TokenLaunched</code> topic 2, and word 1 of <code>getLaunchedToken(token)</code>. Both agree.</dd>
+          <dt>Manual said</dt><dd class="no"><code>0xffa57c97da367731d34ed758c046a2a39d0b18f0</code></dd>
+          <dt>Graded</dt><dd>Wrong. The answer is the right bytes read one hex digit off, so it is a different address. 2 calls used.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="d" id="notes" aria-labelledby="notes-h">
+      <h2 id="notes-h"><small>05</small>Notes and the fact check</h2>
+      <p>An agent that writes its own notes will sometimes write things that are not true. Before every exam the checker reads the notes of Self and Crowd and tests each fact against the chain:</p>
+      <ul>
+        <li>every event topic must appear in real factory logs, or be the hash of an event in the factory's verified ABI or ERC-20;</li>
+        <li>every 4-byte selector must return data from a real call;</li>
+        <li>every event or function named in the notes must exist in the verified ABI, or answer on chain.</li>
+      </ul>
+      <p>Each item is marked <b style="color:var(--emerald)">seen</b>, <b style="color:var(--wrong)">cracked</b> (never seen on chain) or untestable. Cracked lines stay in the record; they are never deleted from the history. Self sees the cracked list when it rewrites its notes.</p>
+    </section>
+
+    <section class="d" id="data" aria-labelledby="data-h">
+      <h2 id="data-h"><small>06</small>Public data</h2>
+      <p>Everything the exam produces is served under <code>https://cribsheet.pro/data/</code>, readable from any origin.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Path</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><code>/data/results.jsonl</code></td><td>One line per hour: status, block window, key block, seed, scores, cost, and every question with its key, key sources, key calls and each arm's answer</td></tr>
+          <tr><td><code>/data/state.json</code></td><td>Next hour, current level and Self's current notes</td></tr>
+          <tr><td><code>/data/transcripts/&lt;hour&gt;/&lt;arm&gt;.json</code></td><td>Every tool call and reply of one arm in one hour</td></tr>
+          <tr><td><code>/data/notes/&lt;arm&gt;/&lt;hour&gt;.md</code></td><td>The exact context block an arm read that hour</td></tr>
+          <tr><td><code>/data/check/&lt;hour&gt;.json</code></td><td>The fact check of Self's notes before that hour</td></tr>
+          <tr><td><code>/data/seal/&lt;hour&gt;</code></td><td>The bytes the hour's seal hash is computed from</td></tr>
+        </tbody>
+      </table></div>
+      <div class="code"><div class="cap"><span>Scores of every hour</span><button class="copy" type="button" data-copy="c1">Copy</button></div><pre id="c1">curl -s https://cribsheet.pro/data/results.jsonl \
+  | jq -c '{hour, status, score}'</pre></div>
+      <div class="code"><div class="cap"><span>The same in JavaScript</span><button class="copy" type="button" data-copy="c2">Copy</button></div><pre id="c2">const text = await (await fetch('https://cribsheet.pro/data/results.jsonl')).text();
+const hours = text.trim().split('\n').map(line => JSON.parse(line));
+console.log(hours.at(-1).score);</pre></div>
+      <p>Field names only grow: after hour 0 a field can be added, never renamed or removed. The schema is <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/spec/results.schema.json" target="_blank" rel="noopener">spec/results.schema.json</a>. Records of the test runs before hour 0 are in <a href="https://github.com/cribsheet-agent/cribsheet/tree/main/records/f0" target="_blank" rel="noopener">records/f0</a>.</p>
+    </section>
+
+    <section class="d" id="check" aria-labelledby="check-h">
+      <h2 id="check-h"><small>07</small>Check it yourself</h2>
+      <p>Every key comes with the calls that produced it (<code>key_calls</code>), so you can read it again from any Robinhood Chain RPC. The curve key from the grading example, read from the public RPC:</p>
+      <div class="code"><div class="cap"><span>getLaunchedToken(0x6aa9…9a05), word 1 is the curve</span><button class="copy" type="button" data-copy="c3">Copy</button></div><pre id="c3">curl -s https://rpc.mainnet.chain.robinhood.com \
+  -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"0x7ed598bcef8bd9edd8c97a195c6d13f40801ec7e","data":"0x3cf28b5a0000000000000000000000006aa9decc666225ef82d55ad364d96c3e0e9d9a05"},"latest"]}'</pre></div>
+      <p>In the result, the second 32-byte word ends in <code>0ffa57c97da367731d34ed758c046a2a39d0b18f</code>, the key in the record.</p>
+      <p>To check a seal, hash the published bytes. Once the seal contract is deployed, the same hash will be on chain for that hour:</p>
+      <div class="code"><div class="cap"><span>Hash of hour 0's seal bytes</span><button class="copy" type="button" data-copy="c4">Copy</button></div><pre id="c4">curl -s https://cribsheet.pro/data/seal/0 | shasum -a 256</pre></div>
+      <p>The whole method, word for word, is in <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/METHOD.md" target="_blank" rel="noopener">METHOD.md</a>. Where the code and that file differ, it is a bug.</p>
+    </section>
+
+    <section class="d" id="status" aria-labelledby="status-h">
+      <h2 id="status-h"><small>08</small>What is live</h2>
+      <p>The same table as the repository README. If anything on this site or in a post claims more than this table, the table wins.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Part</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Hourly exam (Worker + Workflow)</td><td><span class="st live">Live</span> since 26 Nov 2026, minute 1 of every hour</td></tr>
+          <tr><td>Public record <code>/data/</code></td><td><span class="st live">Live</span> from hour 0</td></tr>
+          <tr><td>Question generator and key readers</td><td><span class="st live">Live</span></td></tr>
+          <tr><td>Notes fact check</td><td><span class="st live">Live</span></td></tr>
+          <tr><td>Seal bytes <code>/data/seal/&lt;hour&gt;</code></td><td><span class="st live">Live</span></td></tr>
+          <tr><td>Seal contract on chain</td><td><span class="st part">Written and tested</span>, not deployed</td></tr>
+          <tr><td>Lessons for Crowd, Ask API</td><td><span class="st not">Not built</span>, planned</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="d" id="token" aria-labelledby="token-h">
+      <h2 id="token-h"><small>09</small>$CRIBSHEET</h2>
+      <p>The token is on Robinhood Chain. This is the only address; anything else is not ours.</p>
+      <div class="ca"><span class="k">CA</span><code id="ca">0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f</code><button class="copy" type="button" data-copy="ca">Copy</button></div>
+      <p>What it is planned for, in build order. None of it is built yet; each part is described here once it ships, with its numbers published first.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>#</th><th>Planned use</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>More visitor cases for holders: ask the four agents your own question about a token</td><td><span class="st not">Planned</span></td></tr>
+          <tr><td>2</td><td>Stake a lesson for Crowd. Tested for 3 hours against Crowd without it. Kept: stake back plus a reward. Failed: the stake burns</td><td><span class="st not">Planned</span></td></tr>
+          <tr><td>3</td><td>Pay the Ask API (x402) in $CRIBSHEET at a discount</td><td><span class="st not">Planned</span></td></tr>
+          <tr><td>4</td><td>Buybacks from API revenue, each one on a public record</td><td><span class="st not">Planned</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+  </main>
+</div>
+</div>
+
+<footer class="site">
+  <div class="gut">
+    <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663).</p>
+    <p><a href="/">Home</a> · <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">X</a></p>
+  </div>
+</footer>
+
+<script>
+// copy buttons: copy the text of the element named in data-copy
+document.querySelectorAll('.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var el = document.getElementById(b.dataset.copy);
+    var done = function (ok) {
+      if (!ok) { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+      b.textContent = ok ? 'Copied' : 'Selected, press copy';
+      setTimeout(function () { b.textContent = 'Copy'; }, 1800);
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(el.textContent).then(function () { done(true); }, function () { done(false); });
+    else done(false);
+  });
+});
+// contents rail: mark the section being read
+var links = Array.prototype.slice.call(document.querySelectorAll('#rail a'));
+if ('IntersectionObserver' in window && links.length) {
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('section.d').forEach(function (s) { io.observe(s); });
+}
+// phone contents: close after a jump
+document.querySelectorAll('.toc-m a').forEach(function (a) { a.addEventListener('click', function () { a.closest('details').open = false; }); });
+</script>
+</body>
+</html>
