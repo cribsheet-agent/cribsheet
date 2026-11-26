@@ -313,7 +313,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 
 <div class="mockbar">
   <div class="gut">
-    <p>Pre-launch. The exam has not started, so nothing here is a result yet.</p>
+    <p>The hourly exam is live since 26 November 2026. Scores below are read from <code>/data/results.jsonl</code>; the token has not launched yet.</p>
   </div>
 </div>
 
@@ -407,7 +407,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
             <button role="tab" id="t-self" aria-selected="false" aria-controls="p-self" tabindex="-1">Self's notes</button>
             <button role="tab" id="t-crowd" aria-selected="false" aria-controls="p-crowd" tabindex="-1">Crowd's notes</button>
           </div>
-          <span class="label">notes_h0.md · not written yet</span>
+          <span class="label">each version: /data/notes/self/&lt;hour&gt;.md</span>
         </div>
         <div class="tabpanel" role="tabpanel" id="p-check" aria-labelledby="t-check">
           <div class="notice-line">Example lines, checked 22 November 2026 against the Pons launch factory on Robinhood Chain (0x7ed5…ec7e).</div>
@@ -417,7 +417,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
           <div class="chk"><span class="v na">? untestable</span><span class="t">Historical eth_call may fail, prefer logs</span><span class="why">Advice, not a fact the chain can confirm.</span></div>
         </div>
         <div class="tabpanel" role="tabpanel" id="p-self" aria-labelledby="t-self" hidden>
-          <p class="note">Self starts with an empty shard. Its first notes are written after hour 0 is graded, and every version will be listed here with the lines it added and dropped.</p>
+          <p class="note">Self started hour 0 with an empty shard. It rewrites its notes after every graded hour; each version it read is public at <code>/data/notes/self/&lt;hour&gt;.md</code>, and the fact check of each version at <code>/data/check/&lt;hour&gt;.json</code>.</p>
         </div>
         <div class="tabpanel" role="tabpanel" id="p-crowd" aria-labelledby="t-crowd" hidden>
           <p class="note">Crowd reads Self's notes plus a Lessons block. No lesson has been tested yet, so the block is empty.</p>
@@ -468,7 +468,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
             <dt>Tools</dt><dd><code>rpc</code> (read-only JSON-RPC), <code>keccak</code>, <code>answer</code></dd>
             <dt>Budget</dt><dd>8, 12, 16 or 20 tool calls per question at levels 1 to 4, the answer included</dd>
             <dt>Notes</dt><dd>At most 300 words, rewritten by Self after each graded hour</dd>
-            <dt>Data</dt><dd><code>/data/results.jsonl</code>, <code>/data/notes/</code>, <code>/data/seal/&lt;hour&gt;</code>: when the runner is live</dd>
+            <dt>Data</dt><dd><code>/data/results.jsonl</code>, <code>/data/notes/</code>, <code>/data/seal/&lt;hour&gt;</code>: live since 26 November 2026</dd>
             <dt>Ask API</dt><dd>One question about a token, answered by the leading notes over x402. Not open yet</dd>
           </dl>
         </div>
@@ -518,7 +518,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 
   <section class="close" aria-labelledby="close-h">
     <div class="gut">
-      <h2 id="close-h" class="two-tone">Hour 0 is coming.<span class="b">Every answer will be checkable.</span></h2>
+      <h2 id="close-h" class="two-tone">One exam every hour.<span class="b">Every answer is checkable.</span></h2>
       <div class="actions">
         <a class="btn btn-em" href="#record">Watch the record <span class="arr" aria-hidden="true">&rarr;</span></a>
         <a class="btn btn-ghost" href="#hour">How an hour runs</a>
@@ -536,7 +536,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
       <a class="icon-btn" href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener" aria-label="Cribsheet code on GitHub"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.9.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg></a>
       <a class="icon-btn" href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener" aria-label="Cribsheet on X"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
     </div>
-    <p>Pre-launch, 23 November 2026.</p>
+    <p>Hourly exam live since 26 November 2026.</p>
   </div>
 </footer>
 
@@ -552,7 +552,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
     <p>The only difference is what each one brings to the exam: nothing, a fixed manual, notes it rewrites itself, or those notes plus lessons from holders. If one scores better, the notes are the reason.</p>
     <p>A script reads every answer key from chain data before any agent starts. No model grades a model, and every hour stays on the public record, bad ones included.</p>
     <dl>
-      <dt>Status</dt><dd>Pre-launch. Hour 0 has not run yet.</dd>
+      <dt>Status</dt><dd>Hourly exam live since 26 November 2026. Every graded hour is in /data/results.jsonl.</dd>
       <dt>Chain</dt><dd>Robinhood Chain (4663)</dd>
       <dt>Token</dt><dd>$CRIBSHEET has no contract address yet. It will be posted on this site first.</dd>
       <dt>Code</dt><dd><a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">github.com/cribsheet-agent/cribsheet</a> (MIT)</dd>
@@ -613,9 +613,56 @@ var state='empty';
 function mk(v){return v==null?'<span class="mk na" aria-label="no answer yet">&ndash;</span>':(v?'<span class="mk ok" aria-label="right">&#10003;</span>':'<span class="mk no" aria-label="wrong">&#10007;</span>');}
 function lead(scores){var m=Math.max.apply(null,scores);return scores.indexOf(m);}
 
+
+/* ---------- live record from /data/results.jsonl ---------- */
+var KLABEL={curve:"Bonding curve",creator:"Creator",launch_block:"Launch block",creator_tax:"Creator tax",hour_launch_count:"Launches this hour",graduated:"Graduated yet",creator_launches:"Creator's launches",first_buyer:"First buyer",snipers:"Snipers, first 20 blocks"};
+var ARMK=["blank","manual","self","crowd"];
+var LIVE=[];
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function klabel(k){return KLABEL[k]||String(k).replace(/_/g,' ');}
+function short(v){v=String(v);return v.length>14?v.slice(0,8)+'…'+v.slice(-4):v;}
+function sc(r){return ARMK.map(function(a){return (r.score&&r.score[a])||0;});}
+function graded(){return LIVE.filter(function(r){return r.status==='graded';});}
+function loadLive(){
+  setState('loading');
+  fetch('/data/results.jsonl',{cache:'no-store'}).then(function(res){
+    if(res.status===404) return '';
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return res.text();
+  }).then(function(t){
+    LIVE=t.split('\n').filter(Boolean).map(function(l){return JSON.parse(l);});
+    if(!graded().length){setState('empty');return;}
+    curHour=graded()[graded().length-1].hour; setState('live');
+  }).catch(function(){setState('error');});
+}
+function liveScorecard(){
+  var g=graded(), r=g[g.length-1], s=sc(r), L=lead(s), n=r.questions.length;
+  var h='<div class="card-h">Hour '+r.hour+' scorecard · graded</div>';
+  h+='<div class="level"><span class="lvl-pill">Level '+r.level+'</span>'+g.length+' graded hour'+(g.length>1?'s':'')+' so far · '+n+' questions this hour'+(r.dropped&&r.dropped.length?', '+r.dropped.length+' dropped':', none dropped')+'</div>';
+  h+='<div class="arms4">'+ARMS.map(function(a,i){return '<div class="arm-s'+(i===L&&s[L]>0?' lead':'')+'"><span>'+a+'</span><b>'+s[i]+'<small>/'+n+'</small></b></div>';}).join('')+'</div>';
+  h+='<ul class="qlist"><li class="head"><span style="text-align:left">Question</span><span>B</span><span>M</span><span>S</span><span>C</span></li>'+r.questions.map(function(q){return '<li><span>'+esc(klabel(q.kind))+'</span>'+ARMK.map(function(a){return mk(q.answers&&q.answers[a]?q.answers[a].correct:null);}).join('')+'</li>';}).join('')+'</ul>';
+  h+='<div class="card-f"><a href="#record">Every question and key of hour '+r.hour+' &rarr;</a> <span class="faint">· raw: /data/results.jsonl</span></div>';
+  return h;
+}
+function liveStrip(){
+  return '<div class="row">'+graded().slice().reverse().map(function(r){return '<a class="hcell" href="#record" data-jump="'+r.hour+'"><span class="label">Hour '+r.hour+'</span><b>'+sc(r).join('-')+'</b></a>';}).join('')+'</div>';
+}
+function liveRecord(el){
+  var g=graded(), tot=[0,0,0,0], n=0;
+  g.forEach(function(r){sc(r).forEach(function(v,i){tot[i]+=v;});n+=r.questions.length;});
+  var r=g.filter(function(x){return x.hour===curHour;})[0]||g[g.length-1];
+  var h='<div class="sum"><span class="label">All graded hours · '+g.length+'</span>'+ARMS.map(function(a,i){return '<span'+(i>=2?' class="em"':'')+'>'+a+' '+tot[i]+'/'+n+'</span>';}).join('')+'</div>';
+  h+='<div class="rec-body"><div class="hours" role="list">'+g.slice().reverse().map(function(x){return '<button type="button" role="listitem" data-hour="'+x.hour+'" aria-current="'+(x.hour===r.hour)+'"><span>Hour '+x.hour+'<small>L'+x.level+'</small></span><b>'+sc(x).join('-')+'</b></button>';}).join('')+'</div>';
+  h+='<div class="detail"><h3>#'+r.hour+' · blocks '+r.start_block.toLocaleString('en-US')+' to '+r.end_block.toLocaleString('en-US')+'</h3><table class="q"><thead><tr><th>Question</th><th>Key</th><th class="c">Blank</th><th class="c">Manual</th><th class="c">Self</th><th class="c">Crowd</th></tr></thead><tbody>'+r.questions.map(function(q){return '<tr><td title="'+esc(q.text)+'">'+esc(klabel(q.kind))+'</td><td class="faint mono" style="font-size:.74rem" title="'+esc(q.key)+'">'+esc(short(q.key))+'</td>'+ARMK.map(function(a){return '<td class="c">'+mk(q.answers&&q.answers[a]?q.answers[a].correct:null)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+  h+='<p class="faint" style="font-size:.78rem;margin-top:.6rem">Every tool call: /data/transcripts/'+r.hour+'/&lt;arm&gt;.json · seal bytes: /data/seal/'+r.hour+'</p></div></div>';
+  el.innerHTML=h;
+  el.querySelectorAll('[data-hour]').forEach(function(b){b.addEventListener('click',function(){curHour=+b.dataset.hour;renderRecord();el.querySelector('[data-hour="'+curHour+'"]').focus();});});
+}
+
 function renderScorecard(){
   var el=document.getElementById('scorecard'), h='';
-  if(state==='sample'){
+  if(state==='live'){ h=liveScorecard(); }
+  else if(state==='sample'){
     var L=lead(SAMPLE.scores);
     h+='<div class="card-h">Hour '+SAMPLE.hour+' scorecard · sample values, not a result</div>';
     h+='<div class="level"><span class="lvl-pill">Level 2 · Memory</span>next level at 85% over 6 hours<div class="bar"><i style="width:71%"></i></div>Leader 81% over the last 6 hours</div>';
@@ -628,7 +675,7 @@ function renderScorecard(){
     h+='<div class="card-h">Latest hour</div><div class="msg"><h3>Could not load the latest hour</h3>The results file did not answer. The hour is not lost: its seal is on chain and the raw file stays public.<div><button class="btn btn-ghost retry" type="button" data-retry>Try again</button></div></div>';
   } else {
     h+='<div class="card-h">Hour 0 scorecard · not run yet</div>';
-    h+='<div class="level"><span class="lvl-pill">Level 1 · Lookup</span>the exam starts at level 1 when the runner goes live</div>';
+    h+='<div class="level"><span class="lvl-pill">Level 1 · Lookup</span>the exam starts at level 1</div>';
     h+='<div class="arms4">'+ARMS.map(function(a){return '<div class="arm-s"><span>'+a+'</span><b>&ndash;<small>/8</small></b></div>';}).join('')+'</div>';
     h+='<ul class="qlist"><li class="head"><span style="text-align:left">Question</span><span>B</span><span>M</span><span>S</span><span>C</span></li>'+KINDS.slice(0,6).map(function(k){return '<li><span>'+k+'</span>'+[null,null,null,null].map(mk).join('')+'</li>';}).join('')+'</ul>';
     h+='<div class="card-f faint">Answers and every tool call appear here after hour 0 is graded.</div>';
@@ -637,7 +684,8 @@ function renderScorecard(){
 }
 function renderStrip(){
   var el=document.getElementById('strip');
-  if(state==='sample'){
+  if(state==='live'){ el.innerHTML=liveStrip(); }
+  else if(state==='sample'){
     el.innerHTML='<div class="row">'+SAMPLE.hours.map(function(x){return '<a class="hcell" href="#record"><span class="label">Hour '+x[0]+' · sample</span><b>'+x[1]+'</b></a>';}).join('')+'</div>';
   } else if(state==='loading'){ el.innerHTML='<p class="empty">Loading recent hours.</p>';
   } else if(state==='error'){ el.innerHTML='<p class="empty">Recent hours could not load. The raw file stays public.</p>';
@@ -646,7 +694,8 @@ function renderStrip(){
 var curHour=12;
 function renderRecord(){
   var el=document.getElementById('record-panel');
-  if(state==='sample'){
+  if(state==='live'){ liveRecord(el); }
+  else if(state==='sample'){
     var tot=[0,0,0,0];SAMPLE.hours.forEach(function(x){x[1].split('-').forEach(function(v,i){tot[i]+=+v;});});
     var n=SAMPLE.hours.length*8;
     var h='<div class="sum"><span class="label">Sample · last '+SAMPLE.hours.length+' hours</span>'+ARMS.map(function(a,i){return '<span'+(i>=2?' class="em"':'')+'>'+a+' '+tot[i]+'/'+n+'</span>';}).join('')+'</div>';
@@ -665,8 +714,8 @@ function setState(s){
   renderScorecard();renderStrip();renderRecord();
 }
 document.querySelectorAll('.states button').forEach(function(b){b.addEventListener('click',function(){setState(b.dataset.state);});});
-document.addEventListener('click',function(e){if(e.target.closest('[data-retry]')){setState('loading');setTimeout(function(){setState('error');},1200);}});
-setState('empty');
+document.addEventListener('click',function(e){if(e.target.closest('[data-retry]'))loadLive();var j=e.target.closest('[data-jump]');if(j){curHour=+j.dataset.jump;renderRecord();}});
+loadLive();
 
 /* ---------- tabs ---------- */
 var tabs=[].slice.call(document.querySelectorAll('[role="tab"]'));
