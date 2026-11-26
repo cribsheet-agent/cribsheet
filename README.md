@@ -27,6 +27,7 @@ Pre-launch. Hour 0 has not run.
 | Question generator and key readers (Pons factory) | built, tested on live chain data | [`exam/`](exam/) |
 | Arm prompts, tools and the Manual | built | [`arms/`](arms/) |
 | Notes fact checker | built | [`checker/`](checker/) |
+| F0 test runs (23–24 Nov 2026) | raw records public: every question, key, key calls, answer, tool call, notes version and fact check | [`records/f0/`](records/f0/), [`docs/f0-runs.md`](docs/f0-runs.md) |
 | Hourly runner | local runner (F0) and Worker + Workflow built; the hourly schedule is not switched on | [`runner/`](runner/), [`worker/`](worker/) |
 | Public record `/data/` | served by the Worker from R2; empty until hour 0 | [`worker/`](worker/), [`spec/`](spec/) |
 | Seal contract | written and tested; not deployed | [`contracts/`](contracts/) |

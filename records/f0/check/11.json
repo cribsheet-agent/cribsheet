@@ -1,0 +1,36 @@
+{
+  "hour": 11,
+  "notes": "self",
+  "items": [
+    {
+      "kind": "name",
+      "value": "TokenCreated",
+      "line": "1. **Deployer of a token** – fetch the `TokenCreated` log with `topic[1] = token address`; the creator is in `topic[2]`.",
+      "mark": "cracked"
+    },
+    {
+      "kind": "name",
+      "value": "Launch",
+      "line": "2. **Launch block** – read the block number of the `Launch` log for the token.",
+      "mark": "cracked"
+    },
+    {
+      "kind": "name",
+      "value": "bondingCurve",
+      "line": "4. **Bonding‑curve address** – `eth_call` the token contract with the selector for `bondingCurve()`. If the call reverts, check whether the token is a proxy (via `eth_getStorageAt` at the EIP‑1967 slot) and call the implementation instead.",
+      "mark": "cracked"
+    },
+    {
+      "kind": "name",
+      "value": "creatorTax",
+      "line": "5. **Creator tax (bps)** – `eth_call` with the selector for `creatorTax()`.",
+      "mark": "cracked"
+    },
+    {
+      "kind": "name",
+      "value": "graduated",
+      "line": "6. **Graduation status** – `eth_call` with the selector for `graduated()`; returns a `bool`.",
+      "mark": "seen"
+    }
+  ]
+}

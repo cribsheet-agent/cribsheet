@@ -1,0 +1,13 @@
+{
+  "next_hour": 12,
+  "level": 1,
+  "best": [
+    0.375,
+    0.875,
+    0.875,
+    0.5,
+    0.625
+  ],
+  "self_notes": "**Pons Launch Factory – On‑chain Cheat‑Sheet (verified)**  \n\n**RPC basics**  \n- Block numbers must be hex strings, e.g. `\"0x73a4562\"`.  \n- `eth_getLogs` on Robinhood accepts ≤ 1 000 000 blocks per request. Split larger ranges or add an address filter.  \n- `eth_getCode` → non‑empty = contract (useful for proxy detection).  \n\n**Log‑query template**  \n```json\n{\n  \"fromBlock\":\"0xHEX\",\n  \"toBlock\":\"0xHEX\",\n  \"address\":\"<factory‑address>\",\n  \"topics\":[ \"<event‑hash>\", \"<topic‑1>\", \"<topic‑2>\" ]\n}\n```\n- `topics[0]` = event signature hash.  \n- Indexed params (e.g. token address) go in `topics[1]`, `topics[2]`.  \n\n**Verified factory data**  \n- Factory address: **0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e**  \n- `TokenLaunched` event hash: **0x8d4aad4953d0ca700d468f3753aa14432d1b35b43ec6409f051fb6aa43a89607**  \n- `getLaunchedToken(address)` selector: **0x3cf28b5a** (call data = selector + padded token address).  \n\n**Decoding `getLaunchedToken` result (32‑byte words)**  \n| Word | Meaning |\n|------|---------|\n| 0    | unused / padding |\n| 1    | **bonding‑curve address** |\n| 2    | **deployer address** |\n| …    | other struct fields |\n| 8    | creator‑tax (bps) – present but may revert on direct call |\n\n**Typical on‑chain queries**  \n1. **Deployer of a token** – `eth_getLogs` for `TokenLaunched` with `topics[1]=token`. The log’s `blockNumber` is the launch block; the deployer is word 2 of `getLaunchedToken(token)`.  \n2. **Launch block** – same log’s `blockNumber`.  \n3. **Count tokens in a range** – count `TokenLaunched` logs over the range.  \n4. **Bonding‑curve address** – call `getLaunchedToken(token)` and read word 1. If the call reverts, check proxy status (see below).  \n\n**Proxy handling**  \n- EIP‑1967 implementation slot hash: **0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbd**.  \n- `eth_getStorageAt` at that slot → implementation address (non‑zero means proxy). Call the implementation instead.  \n\n**Gotchas**  \n- Always stay ≤ 1 M blocks per `eth_getLogs`.  \n- Verify proxy status before calling a token contract; a direct call may revert.  \n- `eth_getCode` = `0x` → no contract at address.  \n\n*All event hashes, selectors, and slot hashes listed above have been confirmed on‑chain this hour.*",
+  "lessons": []
+}
