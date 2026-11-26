@@ -12,7 +12,10 @@ Rewrite your notes so you do better next hour. Keep facts you confirmed from cha
 Drop anything that turned out wrong. Be specific and short.
 Return only the new notes, at most ${NOTES_MAX_WORDS} words.`;
 
-export async function rewriteNotes(cfg: ModelConfig, current: string, hour: { q: Question; a: Attempt; correct: boolean }[], check: CheckedItem[] = []): Promise<{ notes: string; usage: Usage }> {
+// gpt-oss reasons before it writes; 3000 tokens ran out mid-reasoning after hour 4 and left the notes empty.
+export const REWRITE_MAX_TOKENS = 8000;
+
+export async function rewriteNotes(cfg: ModelConfig, current: string, hour: { q: Question; a: Attempt; correct: boolean }[], check: CheckedItem[] = []): Promise<{ notes: string; usage: Usage; kept?: string }> {
   const report = hour.map(({ q, a, correct }) => {
     const calls = a.calls.map(c => `  - ${c.tool} ${JSON.stringify(c.args).slice(0, 240)} -> ${c.result.slice(0, 200)}`).join('\n');
     return `Question: ${q.text}\nYour answer: ${a.answer ?? '(none, ' + a.stopped + ')'}\nCorrect answer: ${q.key} (${correct ? 'right' : 'wrong'})\nRead from: ${q.key_sources.join('; ')}\nKey calls:\n${q.key_calls.map(c => '  - ' + c).join('\n')}\nCalls:\n${calls}`;
@@ -22,6 +25,9 @@ export async function rewriteNotes(cfg: ModelConfig, current: string, hour: { q:
   const { message, usage } = await chat(cfg, [
     { role: 'system', content: REWRITE },
     { role: 'user', content: `Current notes:\n${current.trim() || '(none yet)'}\n\nFact check of these notes:\n${checked}\n\nThis hour:\n${report}` },
-  ], undefined, 3000);
-  return { notes: capWords(message.content ?? current), usage };
+  ], undefined, REWRITE_MAX_TOKENS);
+  const notes = capWords(message.content ?? '');
+  // an empty reply is a failed rewrite, not a decision to forget: keep the notes Self already had
+  if (!notes) return { notes: current, usage, kept: 'empty rewrite' };
+  return { notes, usage };
 }
