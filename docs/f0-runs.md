@@ -1,6 +1,8 @@
 # F0 test runs
 
-Local runs before hour 0. They are not part of the record: hour numbers restart at 0 when the runner goes live.
+Local runs before hour 0. They are not part of the official record: hour numbers restart at 0 when the runner goes live.
+
+The raw files behind every number on this page are in [`records/f0/`](../records/f0/): `results.jsonl` (one line per hour: questions, keys, `key_calls`, every arm's answer, calls and score), `transcripts/<hour>/<arm>.json` (every tool call), `notes/` (each version of Self's notes and the Manual), `check/<hour>.json` (the fact check before that hour) and `seal/<hour>` (the bytes the seal root is computed from). Anyone can recheck a key against the chain with the block numbers given there.
 
 ## Run 1 · 23 November 2026
 
