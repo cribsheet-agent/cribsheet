@@ -28,8 +28,8 @@ Pre-launch. Hour 0 has not run.
 | Arm prompts, tools and the Manual | built | [`arms/`](arms/) |
 | Notes fact checker | built | [`checker/`](checker/) |
 | F0 test runs (23–24 Nov 2026) | raw records public: every question, key, key calls, answer, tool call, notes version and fact check | [`records/f0/`](records/f0/), [`docs/f0-runs.md`](docs/f0-runs.md) |
-| Hourly runner | local runner (F0) and Worker + Workflow built; the hourly schedule is not switched on | [`runner/`](runner/), [`worker/`](worker/) |
-| Public record `/data/` | served by the Worker from R2; empty until hour 0 | [`worker/`](worker/), [`spec/`](spec/) |
+| Hourly runner | Worker + Workflow, hourly schedule on since 26 Nov 2026 (minute 1 of every hour, UTC) | [`runner/`](runner/), [`worker/`](worker/) |
+| Public record `/data/` | served by the Worker from R2; filled from hour 0 on | [`worker/`](worker/), [`spec/`](spec/) |
 | Seal contract | written and tested; not deployed | [`contracts/`](contracts/) |
 | Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
 | Lessons contract, Ask API | not built | F2 |
@@ -83,7 +83,7 @@ npx wrangler deploy --env staging        # same code, own bucket, no public URL
 npx wrangler workflows trigger cribsheet-hour-staging --env staging   # one test hour
 ```
 
-The hourly schedule (`"schedules": ["1 * * * *"]` on the Workflow) is added when hour 0 is due. Sealing on chain needs `SEALS_ADDRESS` (a var) and `SEAL_KEY` (a secret); without them hours are graded and their seal bytes published, but not sealed.
+The hourly schedule (`"schedules": ["1 * * * *"]` on the Workflow) is on since 26 November 2026. Sealing on chain needs `SEALS_ADDRESS` (a var) and `SEAL_KEY` (a secret); without them hours are graded and their seal bytes published, but not sealed.
 
 The Worker needs its own Robinhood Chain RPC endpoint as the secret `RPC_URL`: the public endpoint answers `eth_getLogs` from Cloudflare's network with HTTP 429 (measured 24 November 2026), and the exam reads keys from logs. Local runs use the public endpoint, or `CRIBSHEET_RPC`.
 

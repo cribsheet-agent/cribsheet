@@ -12,9 +12,9 @@
     {
       "name": "cribsheet-hour",
       "binding": "HOUR",
-      "class_name": "ExamHour"
-      // "schedules": ["1 * * * *"] starts the exam: one instance at minute 1 of every hour.
-      // It is added when hour 0 is due, not before.
+      "class_name": "ExamHour",
+      // one instance at minute 1 of every hour examines the hour that just closed (on since 26 Nov 2026)
+      "schedules": ["1 * * * *"]
     }
   ],
   "observability": { "enabled": true },
