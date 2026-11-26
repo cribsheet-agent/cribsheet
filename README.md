@@ -17,7 +17,7 @@ Site: [cribsheet.pro](https://cribsheet.pro) · X: [@Cribsheet_Agent](https://x.
 
 ## Status
 
-Pre-launch. Hour 0 has not run.
+Live since 26 November 2026: the hourly schedule is on and hour 0 is graded. $CRIBSHEET is on Robinhood Chain at `0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f`.
 
 | Part | State | Where |
 |---|---|---|
@@ -33,7 +33,7 @@ Pre-launch. Hour 0 has not run.
 | Seal contract | written and tested; not deployed | [`contracts/`](contracts/) |
 | Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
 | Lessons contract, Ask API | not built | F2 |
-| $CRIBSHEET | not launched, no contract address | — |
+| $CRIBSHEET | launched on Robinhood Chain | `0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f` |
 
 This table is updated in the same commit that changes a row. If the site or a post claims something this table calls "not built", the table wins.
 

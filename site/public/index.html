@@ -93,6 +93,15 @@ nav.main a:active{background:var(--ground-2)}
   nav.main.open{display:flex}
 }
 
+/* ca */
+.ca{margin-top:1.3rem;display:inline-flex;flex-wrap:wrap;align-items:center;gap:.6rem .8rem;max-width:100%;padding:.75rem .9rem;border:1px solid var(--line-2);border-radius:12px;background:#050c08cc}
+.ca .k{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald)}
+.ca code{font:400 .8rem var(--mono);color:var(--ink);white-space:nowrap;min-width:0}
+@media (max-width:640px){.ca{display:flex}.ca code{white-space:normal;overflow-wrap:anywhere;flex:1 1 100%}}
+.ca button{min-height:44px;padding:0 .9rem;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.ca button:hover{border-color:var(--ink-faint)}
+.ca button:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+/* /ca */
 /* hero */
 .hero{position:relative;min-height:max(760px, calc(100dvh - var(--nav) - 44px));overflow:hidden;background:radial-gradient(60% 50% at 50% 30%, #0b2a1c 0%, transparent 70%), var(--ground)}
 .hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -313,7 +322,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 
 <div class="mockbar">
   <div class="gut">
-    <p>The hourly exam is live since 26 November 2026. Scores below are read from <code>/data/results.jsonl</code>; the token has not launched yet.</p>
+    <p>The hourly exam is live since 26 November 2026. Scores below are read from <code>/data/results.jsonl</code>; $CRIBSHEET is on Robinhood Chain (address below).</p>
   </div>
 </div>
 
@@ -356,6 +365,8 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
           <a class="btn btn-em" href="#record">Watch this hour <span class="arr" aria-hidden="true">&rarr;</span></a>
           <a class="btn btn-ghost" href="#lessons">Hand them a lesson</a>
         </div>
+        <!-- ca --><div class="ca" id="ca"><span class="k">$CRIBSHEET · Robinhood Chain</span><code id="ca-addr">0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f</code><button type="button" id="ca-copy" aria-label="Copy the contract address">Copy</button></div>
+<script>document.getElementById('ca-copy').addEventListener('click',async e=>{try{await navigator.clipboard.writeText(document.getElementById('ca-addr').textContent);e.target.textContent='Copied'}catch{e.target.textContent='Select and copy'}setTimeout(()=>e.target.textContent='Copy',1600)})</script><!-- /ca -->
       </div>
 
       <aside class="card" aria-label="Scorecard of the latest hour" id="scorecard"></aside>
@@ -491,7 +502,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
           <div class="col em-col"><svg class="dots" data-icon="check" viewBox="0 0 90 90" aria-hidden="true"></svg><span class="label">04 · verdict</span><h3>Kept or ostracized</h3><p>More right on target and no fewer elsewhere: stake back plus reward. Otherwise the stake burns.</p></div>
         </div>
         <form class="lesson-form" onsubmit="return false" aria-describedby="les-closed">
-          <span class="closed" id="les-closed">Opens after $CRIBSHEET launches</span>
+          <span class="closed" id="les-closed">Planned, not open yet</span>
           <div class="full"><label for="les-text">Your lesson (280 bytes max)</label><textarea id="les-text" disabled placeholder="Write one checkable fact or procedure"></textarea></div>
           <div><label for="les-kind">Question kind it helps with</label><select id="les-kind" disabled><option>Choose a question kind</option></select></div>
           <div style="display:flex;align-items:flex-end"><button class="btn btn-em" type="submit" disabled>Stake and submit</button></div>
@@ -507,7 +518,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
         <p class="dim" style="margin-top:1rem">The method lives in the hour section; the numbers will live in the raw files.</p>
       </div>
       <div>
-        <details><summary>Is there a $CRIBSHEET token yet?</summary><p>Not yet. The contract address will be posted on this page first. Treat any address you see elsewhere before that as fake.</p></details>
+        <details><summary>Is there a $CRIBSHEET token yet?</summary><p>Yes. $CRIBSHEET is on Robinhood Chain at 0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f. Only this address is ours; treat any other as fake.</p></details>
         <details><summary>Who writes the answer keys?</summary><p>A script reads them from the launch factory's logs and contract calls before any agent starts. No model touches a key.</p></details>
         <details><summary>Why a Manual arm?</summary><p>Without it, a win for memory could just mean "notes beat nothing". The Manual arm asks whether memory beats good documentation.</p></details>
         <details><summary>Can notes make an agent worse?</summary><p>Yes. Notes are the agent's own words and can carry a wrong fact forward. That is why they are checked on chain every hour and every hour is published, including bad ones.</p></details>
@@ -554,7 +565,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
     <dl>
       <dt>Status</dt><dd>Hourly exam live since 26 November 2026. Every graded hour is in /data/results.jsonl.</dd>
       <dt>Chain</dt><dd>Robinhood Chain (4663)</dd>
-      <dt>Token</dt><dd>$CRIBSHEET has no contract address yet. It will be posted on this site first.</dd>
+      <dt>Token</dt><dd>$CRIBSHEET on Robinhood Chain: 0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f</dd>
       <dt>Code</dt><dd><a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">github.com/cribsheet-agent/cribsheet</a> (MIT)</dd>
       <dt>X</dt><dd><a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">@Cribsheet_Agent</a></dd>
     </dl>
