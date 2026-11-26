@@ -80,13 +80,13 @@ header.site .gut{height:100%;display:flex;align-items:center;justify-content:spa
 .brand img{display:block;flex:none;margin-right:.5rem}
 .brand span{color:var(--emerald)}
 nav.main{display:flex;align-items:center;gap:.2rem}
-nav.main a{display:inline-flex;align-items:center;min-height:44px;padding:0 .65rem;color:var(--ink-dim);text-decoration:none;font-size:.95rem;border-radius:8px}
+nav.main a{display:inline-flex;align-items:center;min-height:44px;padding:0 .65rem;white-space:nowrap;color:var(--ink-dim);text-decoration:none;font-size:.95rem;border-radius:8px}
 nav.main a:hover{color:var(--ink)}
 nav.main a:active{background:var(--ground-2)}
 .nav-right{display:flex;align-items:center;gap:.6rem}
 .menu-btn{display:none;min-height:44px;padding:0 .9rem;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:500 .74rem var(--mono);text-transform:uppercase;letter-spacing:.06em}
 .menu-btn:hover{border-color:var(--ink-faint)}
-@media (max-width:980px){
+@media (max-width:1120px){
   .menu-btn{display:inline-flex;align-items:center}
   .nav-right .btn-em{display:none}
   nav.main{position:absolute;left:0;right:0;top:100%;flex-direction:column;align-items:stretch;padding:.5rem var(--gutter) 1rem;background:var(--ground);border-bottom:1px solid var(--line);display:none}
@@ -299,6 +299,8 @@ footer.site .gut{align-items:center}
 .icon-btn:focus-visible,.about-btn:focus-visible,.pause:focus-visible,.modal-x:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
 .about-btn{min-height:44px;padding:0 .9rem;border-radius:10px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:500 .74rem var(--mono);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
 .about-btn:hover{border-color:var(--ink-faint)}
+@media (max-width:480px){.nav-right .icon-x{display:none}}
+@media (max-width:360px){.nav-right{gap:.3rem!important}.about-btn,.menu-btn{padding:0 .55rem!important}header.site .gut{gap:.5rem}}
 @media (max-width:420px){.nav-right{gap:.4rem}.about-btn,.menu-btn{padding:0 .7rem}.brand{font-size:1.05rem}}
 /* about modal */
 dialog.about{width:min(560px, calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line-2);border-radius:16px;background:var(--panel);color:var(--ink);overflow:auto}
@@ -340,7 +342,8 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
     </nav>
     <div class="nav-right">
       <button class="about-btn" type="button" id="about-open" aria-haspopup="dialog" aria-controls="about">About</button>
-      <a class="icon-btn" href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener" aria-label="Cribsheet on X"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="icon-btn" href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener" aria-label="Cribsheet code on GitHub"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.9.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg></a>
+      <a class="icon-btn icon-x" href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener" aria-label="Cribsheet on X"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
       <a class="btn btn-em" href="#record">Latest hour</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button>
     </div>
