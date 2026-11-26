@@ -33,8 +33,9 @@ export async function rpc<T = unknown>(method: string, params: unknown[], url = 
         body: JSON.stringify({ jsonrpc: '2.0', id: nextId++, method, params }),
         signal: AbortSignal.timeout(30_000),
       });
-      if (res.status === 429 || res.status >= 500) throw new RpcError(`HTTP ${res.status}`);
-      if (!res.ok) throw new RpcError(`HTTP ${res.status}`, res.status);
+      // the host (never the path, which can hold an API key) says which RPC refused
+      if (res.status === 429 || res.status >= 500) throw new RpcError(`HTTP ${res.status} from ${new URL(url).host}`);
+      if (!res.ok) throw new RpcError(`HTTP ${res.status} from ${new URL(url).host}`, res.status);
       const body = await res.json() as { result?: T; error?: { code: number; message: string } };
       if (body.error) throw new RpcError(body.error.message, body.error.code);
       return body.result as T;
