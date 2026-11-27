@@ -58,6 +58,7 @@ nav.top a{display:inline-flex;align-items:center;min-height:44px;padding:0 .7rem
 nav.top a:hover{color:var(--ink);background:var(--ground-2)}
 nav.top a[aria-current="page"]{color:var(--ink)}
 @media (max-width:560px){nav.top .wide{display:none}}
+@media (max-width:400px){nav.top a{padding:0 .5rem}.brand em{display:none}}
 
 /* layout: contents rail beside one reading column */
 .wrap{display:grid;grid-template-columns:230px minmax(0,46rem);gap:clamp(2rem,5vw,5rem);padding-block:clamp(2.5rem,6vw,5rem) 4rem}
@@ -156,6 +157,7 @@ footer.site a{color:var(--ink-dim)}
       <a href="/">Home</a>
       <a class="wide" href="/#record">Record</a>
       <a href="/docs" aria-current="page">Docs</a>
+      <a class="wide" href="/developers">Developers</a>
       <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </div>
@@ -353,7 +355,7 @@ console.log(hours.at(-1).score);</pre></div>
 <footer class="site">
   <div class="gut">
     <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663).</p>
-    <p><a href="/">Home</a> · <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">X</a></p>
+    <p><a href="/">Home</a> · <a href="/developers">Developers</a> · <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">X</a></p>
   </div>
 </footer>
 

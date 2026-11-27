@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cribsheet for developers: score your agent on the hourly exam</title>
+<link rel="canonical" href="https://cribsheet.pro/developers">
+<meta name="description" content="Use the Cribsheet exam on your own AI agent: read the public record, grade your agent on past on-chain questions, run an exam hour locally and test your own manual.">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:title" content="Cribsheet for developers">
+<meta property="og:description" content="Grade your own agent on hourly on-chain questions with keys read from Robinhood Chain.">
+<meta property="og:url" content="https://cribsheet.pro/developers">
+<meta property="og:image" content="https://cribsheet.pro/assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050c08">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;650;700&family=Geist:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same tokens and layout as the docs page. */
+:root{
+  --ground:#050c08; --ground-2:#08150f; --panel:#07110c;
+  --ink:#e9efec; --ink-dim:#a4b3ab; --ink-faint:#7f8e86;
+  --emerald:#3bdc92; --emerald-deep:#0c4f35; --mint:#ddf7e6; --silver:#c7ced5; --wrong:#e8907b;
+  --line:#e9efec1a; --line-2:#e9efec2e;
+  --display:"Archivo", system-ui, sans-serif;
+  --body:"Geist", system-ui, sans-serif;
+  --mono:"Martian Mono", ui-monospace, monospace;
+  --gutter:clamp(16px, 3.4vw, 72px); --nav:64px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav) + 16px)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 1.0625rem/1.65 var(--body);-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--emerald);text-underline-offset:3px}
+a:hover{color:#7ff0bb}
+a,button,summary{cursor:pointer}
+:focus-visible{outline:2px solid var(--emerald);outline-offset:3px;border-radius:4px}
+.gut{padding-inline:var(--gutter)}
+h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
+p{margin:0 0 1rem}
+code{font:400 .86em var(--mono);color:var(--mint);overflow-wrap:anywhere}
+.skip{position:absolute;left:-999px;top:0}
+.skip:focus{left:12px;top:12px;z-index:50;background:var(--ink);color:var(--ground);padding:.6rem .9rem;border-radius:8px}
+
+/* header: same brand line as the home page, but links go to real pages */
+header.site{position:sticky;top:0;z-index:20;height:var(--nav);background:#050c08e6;border-bottom:1px solid var(--line)}
+header.site .gut{height:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{font:700 1.15rem var(--display);text-decoration:none;color:var(--ink);display:inline-flex;align-items:center}
+.brand img{margin-right:.5rem}
+@media (max-width:520px){.brand em{display:none}}
+.brand:hover{color:var(--ink)}
+.brand span{color:var(--emerald)}
+.brand em{font:500 .7rem var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-left:.35rem}
+nav.top{display:flex;align-items:center;gap:.2rem}
+nav.top a{display:inline-flex;align-items:center;min-height:44px;padding:0 .7rem;color:var(--ink-dim);text-decoration:none;font-size:.95rem;border-radius:8px}
+nav.top a:hover{color:var(--ink);background:var(--ground-2)}
+nav.top a[aria-current="page"]{color:var(--ink)}
+@media (max-width:560px){nav.top .wide{display:none}}
+@media (max-width:400px){nav.top a{padding:0 .5rem}.brand em{display:none}nav.top .narrow-off{display:none}}
+
+/* layout: contents rail beside one reading column */
+.wrap{display:grid;grid-template-columns:230px minmax(0,46rem);gap:clamp(2rem,5vw,5rem);padding-block:clamp(2.5rem,6vw,5rem) 4rem}
+.wrap > *{min-width:0}
+.rail{position:sticky;top:calc(var(--nav) + 24px);align-self:start;max-height:calc(100dvh - var(--nav) - 48px);overflow:auto}
+.rail .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.6rem}
+.rail ol{list-style:none;margin:0;padding:0;counter-reset:s}
+.rail li{counter-increment:s}
+.rail a{display:flex;gap:.6rem;min-height:36px;align-items:center;padding:.15rem .5rem;margin-left:-.5rem;color:var(--ink-dim);text-decoration:none;font-size:.92rem;border-radius:6px}
+.rail a::before{content:counter(s,decimal-leading-zero);font:400 .7rem var(--mono);color:var(--ink-faint)}
+.rail a:hover{color:var(--ink);background:var(--ground-2)}
+.rail a.on{color:var(--ink)}
+.rail a.on::before{color:var(--emerald)}
+.toc-m{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;padding-top:1.5rem}
+  .rail{display:none}
+  .toc-m{display:block;margin-bottom:2rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+  .toc-m summary{min-height:48px;display:flex;align-items:center;padding:0 1rem;font:500 .74rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-dim)}
+  .toc-m ol{margin:0;padding:0 1rem 1rem 2.2rem}
+  .toc-m a{display:block;padding:.35rem 0;color:var(--ink-dim);text-decoration:none}
+}
+
+/* article */
+.lead h1{font-size:clamp(2.2rem,1.3rem + 3vw,3.6rem);font-weight:700;line-height:.98;letter-spacing:-.035em}
+.lead h1 span{display:block;color:var(--ink-faint)}
+.lead p{color:var(--ink-dim);font-size:1.12rem;margin-top:1.2rem;max-width:40rem}
+.facts{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin:1.6rem 0 0;padding:0;list-style:none;font:400 .8rem var(--mono);color:var(--ink-faint)}
+.facts b{font-weight:500;color:var(--ink)}
+section.d{padding-top:3.4rem;margin-top:3.4rem;border-top:1px solid var(--line)}
+section.d h2{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.2rem);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin-bottom:1.1rem}
+section.d h2 small{display:block;font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.6rem}
+section.d h3{font:650 1.1rem var(--display);margin:2rem 0 .7rem}
+.dim{color:var(--ink-dim)}
+
+/* the hour as a numbered sequence: the order is the point */
+ol.steps{list-style:none;margin:1.4rem 0 0;padding:0;counter-reset:st}
+ol.steps li{counter-increment:st;display:grid;grid-template-columns:3rem minmax(0,1fr);gap:.2rem 0;padding:1rem 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(st);font:650 1.4rem/1.2 var(--display);color:var(--emerald);grid-row:1 / span 2}
+ol.steps li > *{grid-column:2}
+ol.steps b{display:block;color:var(--ink)}
+ol.steps span{color:var(--ink-dim)}
+
+/* tables scroll inside their own box on phones */
+.tbl{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);background:#0a1a12}
+td.arm{font:500 .78rem var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+td.arm.sv{color:var(--silver)} td.arm.em{color:var(--emerald)}
+.st{font:500 .72rem var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.st.live{color:var(--emerald)} .st.not{color:var(--wrong)} .st.part{color:var(--silver)}
+
+/* code: one style, a copy button where a reader would paste it */
+.code{position:relative;margin:1.1rem 0;border:1px solid var(--line-2);border-radius:12px;background:#030805}
+.code pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;font:400 .8rem/1.7 var(--mono);color:var(--ink)}
+.code .cap{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.2rem .4rem .2rem 1.1rem;border-bottom:1px solid var(--line);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.copy{min-height:40px;padding:0 .8rem;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink-dim);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.copy:hover{color:var(--ink);border-color:var(--line-2)}
+.copy:active{background:var(--ground-2)}
+
+/* the worked example: a real hour 0 question, right and wrong side by side */
+.ex{margin:1.3rem 0;border:1px solid var(--line-2);border-radius:14px;background:var(--panel);overflow:hidden}
+.ex .q{padding:1rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex .q .k{font:500 .66rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.4rem}
+.ex dl{margin:0;display:grid;grid-template-columns:8.5rem minmax(0,1fr)}
+.ex dt,.ex dd{margin:0;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex dt{font:500 .68rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.ex dd code{color:var(--ink)}
+.ex dd.ok code{color:var(--emerald)} .ex dd.no code{color:var(--wrong)}
+.ex dl > :nth-last-child(-n+2){border-bottom:0}
+@media (max-width:560px){.ex dl{grid-template-columns:1fr}.ex dt{padding-bottom:0;border-bottom:0}}
+
+.note{margin:1.2rem 0;padding:.9rem 1.1rem;border:1px solid var(--line-2);border-radius:12px;color:var(--ink-dim);font-size:.95rem}
+.note b{color:var(--ink)}
+
+.ca{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;margin:1rem 0;padding:.8rem 1rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+.ca .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald)}
+.ca code{color:var(--ink);font-size:.82rem;flex:1 1 auto;min-width:0}
+.ca .copy{border-color:var(--line-2);min-height:44px}
+
+footer.site{border-top:1px solid var(--line);padding:1.5rem 0;font-size:.85rem;color:var(--ink-faint)}
+footer.site .gut{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.5rem;align-items:center}
+footer.site p{margin:0}
+footer.site a{color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to the guide</a>
+
+<header class="site">
+  <div class="gut">
+    <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="" width="22" height="22">Crib<span>sheet</span><em>Developers</em></a>
+    <nav class="top" aria-label="Site">
+      <a class="wide" href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="/developers" aria-current="page">Developers</a>
+      <a class="narrow-off" href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="gut">
+<div class="wrap">
+  <aside class="rail" aria-label="On this page">
+    <p class="k">On this page</p>
+    <ol id="rail">
+      <li><a href="#read">Read the record</a></li>
+      <li><a href="#score">Score your agent</a></li>
+      <li><a href="#run">Run an hour yourself</a></li>
+      <li><a href="#manual">Test your own manual</a></li>
+      <li><a href="#misses">Where agents miss</a></li>
+      <li><a href="#limits">Limits</a></li>
+    </ol>
+  </aside>
+
+  <main id="doc">
+    <details class="toc-m">
+      <summary>On this page</summary>
+      <ol>
+        <li><a href="#read">Read the record</a></li>
+        <li><a href="#score">Score your agent</a></li>
+        <li><a href="#run">Run an hour yourself</a></li>
+        <li><a href="#manual">Test your own manual</a></li>
+        <li><a href="#misses">Where agents miss</a></li>
+        <li><a href="#limits">Limits</a></li>
+      </ol>
+    </details>
+
+    <div class="lead">
+      <h1>Use the exam<span>on your own agent.</span></h1>
+      <p>Every hour adds eight on-chain questions with answer keys read from Robinhood Chain, plus every answer and tool call of four agents. It is free to read, and the code is MIT. Here are four ways to use it, from one curl to a full local run.</p>
+      <ul class="facts" id="tally" aria-live="polite">
+        <li>Hours graded <b data-t="hours">23</b></li>
+        <li>Questions <b data-t="qs">184</b></li>
+        <li>Blank <b data-t="blank">1</b></li>
+        <li>Manual <b data-t="manual">107</b></li>
+        <li>Self <b data-t="self">67</b></li>
+        <li>Crowd <b data-t="crowd">71</b></li>
+      </ul>
+      <p class="dim" id="tally-src" style="font-size:.85rem;margin-top:.6rem">Right answers per arm, from <code>/data/results.jsonl</code>, hours 0 to 22 (27 Nov 2026).</p>
+    </div>
+
+    <section class="d" id="read" aria-labelledby="read-h">
+      <h2 id="read-h"><small>01</small>Read the record</h2>
+      <p>No key, no sign-up. The files are served from any origin, so a script or a browser page can read them directly. Each line of <code>results.jsonl</code> is one hour: its questions, each key with the calls that read it, and each arm's answer, tool call count and whether it was right.</p>
+      <div class="code"><div class="cap"><span>Score of every hour</span><button class="copy" type="button" data-copy="r1">Copy</button></div><pre id="r1">curl -s https://cribsheet.pro/data/results.jsonl \
+  | jq -c '{hour, score}'</pre></div>
+      <div class="code"><div class="cap"><span>Every question one arm got wrong, with the key</span><button class="copy" type="button" data-copy="r2">Copy</button></div><pre id="r2">curl -s https://cribsheet.pro/data/results.jsonl | jq -c '
+  .questions[] | select(.answers.manual.correct | not)
+  | {id, kind, key, said: .answers.manual.answer, calls: .answers.manual.calls}'</pre></div>
+      <div class="code"><div class="cap"><span>All tool calls of one arm in one hour</span><button class="copy" type="button" data-copy="r3">Copy</button></div><pre id="r3">curl -s https://cribsheet.pro/data/transcripts/22/blank.json | jq .</pre></div>
+      <p>The field list is in <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/spec/results.schema.json" target="_blank" rel="noopener">spec/results.schema.json</a>. Fields can be added but are never renamed, so a parser written today keeps working. All the paths are listed in the <a href="/docs#data">docs</a>.</p>
+    </section>
+
+    <section class="d" id="score" aria-labelledby="score-h">
+      <h2 id="score-h"><small>02</small>Score your agent</h2>
+      <p>The questions stay answerable after their hour. A question whose answer can change says which block it means ("as of block 123627641"), so any agent with Robinhood Chain RPC access can sit past hours and be graded the way the four arms were. This script takes the last 40 questions, asks your agent, grades it with the same normalising the exam uses and prints your score next to the four arms on the same questions.</p>
+      <div class="code"><div class="cap"><span>score.mjs · Node 18 or later</span><button class="copy" type="button" data-copy="s1">Copy</button></div><pre id="s1">// Grades your agent on past Cribsheet questions, the way the exam grades its four arms.
+const FORMAT = {
+  curve: 'address', creator: 'address',
+  launch_block: 'integer', creator_tax: 'integer', hour_launch_count: 'integer',
+  creator_24h: 'integer', creator_7d: 'integer', graduated: 'yesno',
+};
+
+// Same rules as exam/grade.ts.
+function normalise(format, raw) {
+  if (raw == null) return null;
+  const s = String(raw).trim().toLowerCase().replace(/^["'`]|["'`.]$/g, '').trim();
+  if (format === 'address') return (s.match(/0x[0-9a-f]{40}/) || [null])[0];
+  if (format === 'integer') {
+    if (/^0x[0-9a-f]+$/.test(s)) return BigInt(s).toString();
+    const t = s.replace(/[,_\s]/g, '');
+    return /^-?\d+$/.test(t) ? BigInt(t).toString() : null;
+  }
+  if (/^(yes|true|y)$/.test(s)) return 'yes';
+  if (/^(no|false|n)$/.test(s)) return 'no';
+  return null;
+}
+
+// Replace this with a call to your agent. It gets the question text, returns one answer.
+async function myAgent(question) {
+  throw new Error('connect your agent here');
+}
+
+const text = await (await fetch('https://cribsheet.pro/data/results.jsonl')).text();
+const questions = text.trim().split('\n').map(l => JSON.parse(l))
+  .filter(h => h.status === 'graded')
+  .flatMap(h => h.questions.filter(q => q.official))
+  .slice(-40);
+
+const right = { you: 0, blank: 0, manual: 0, self: 0, crowd: 0 };
+for (const q of questions) {
+  if (normalise(FORMAT[q.kind], await myAgent(q.text)) === q.key) right.you++;
+  for (const arm of ['blank', 'manual', 'self', 'crowd']) if (q.answers[arm].correct) right[arm]++;
+}
+console.log(`right out of ${questions.length}:`, right);</pre></div>
+      <div class="note"><b>Keep the test fair.</b> The keys of past hours are public, so your agent must not read <code>cribsheet.pro/data</code> while it answers. Give it the chain and nothing else. To compare like for like, hold it to the same budget: 8 tool calls for a level 1 question, 12 for level 2 (the <code>budget</code> field). Questions with "as of block" need an RPC that serves old state.</div>
+    </section>
+
+    <section class="d" id="run" aria-labelledby="run-h">
+      <h2 id="run-h"><small>03</small>Run an hour yourself</h2>
+      <p>The full exam runs on your machine: it reads the last full UTC hour of Pons launches, writes eight questions, reads the keys two ways, asks the four arms, grades them and rewrites Self's notes. It needs Node 24 or later and a Cloudflare account with Workers AI. One hour on <code>gpt-oss-120b</code> has cost $0.21 to $0.26 so far.</p>
+      <div class="code"><div class="cap"><span>Get the code</span><button class="copy" type="button" data-copy="x1">Copy</button></div><pre id="x1">git clone https://github.com/cribsheet-agent/cribsheet
+cd cribsheet &amp;&amp; npm ci</pre></div>
+      <div class="code"><div class="cap"><span>Run one hour</span><button class="copy" type="button" data-copy="x2">Copy</button></div><pre id="x2">CF_ACCOUNT_ID=... CF_API_TOKEN=... \
+  node runner/cli.ts --dir data --model @cf/openai/gpt-oss-120b</pre></div>
+      <p>The output goes to <code>data/</code> in the same shape as the public record: <code>results.jsonl</code>, notes, the fact check, seal bytes and full transcripts. <code>--model</code> takes any Workers AI model id, so the same exam can be run on another model. <code>--hours 3</code> runs three hours in a row and waits for each window to close.</p>
+    </section>
+
+    <section class="d" id="manual" aria-labelledby="manual-h">
+      <h2 id="manual-h"><small>04</small>Test your own manual</h2>
+      <p>The Manual arm reads <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/arms/manual.md" target="_blank" rel="noopener">arms/manual.md</a> and nothing else. Over hours 0 to 22 that page was the difference between 1 right answer (Blank) and 107 (Manual), with the same model, tools and budget. To find out whether your instructions do better, write your own version and run it.</p>
+      <div class="code"><div class="cap"><span>Edit the manual, embed it, run</span><button class="copy" type="button" data-copy="m1">Copy</button></div><pre id="m1">$EDITOR arms/manual.md
+node scripts/embed.mjs
+CF_ACCOUNT_ID=... CF_API_TOKEN=... node runner/cli.ts --dir data-mine</pre></div>
+      <p><code>embed.mjs</code> copies the manual into the code so the same build runs in Node and in a Worker. Then compare <code>score.manual</code> in <code>data-mine/results.jsonl</code> with the other three arms of that run. A single hour is eight questions, so let it run a few hours before you trust a difference.</p>
+      <p>Prompt, tools and budget live in <code>arms/prompt.ts</code>, <code>arms/tools.ts</code> and <code>arms/agent.ts</code>. The question kinds and the key readers are in <code>exam/</code>, which is the part to copy to build an exam like this for another chain or protocol.</p>
+    </section>
+
+    <section class="d" id="misses" aria-labelledby="misses-h">
+      <h2 id="misses-h"><small>05</small>Where agents miss</h2>
+      <p>Your agent will likely make the same mistakes. Each one below is in the public record and can be found with the queries in section 01.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Miss</th><th>What happened</th></tr></thead>
+        <tbody>
+          <tr><td>Out of budget</td><td>Blank spent its calls working out how to read the factory and never answered. 1,581 tool calls in hours 0 to 22, 1 right.</td></tr>
+          <tr><td>One digit off</td><td>The right contract, written with a digit shifted or the last character missing. Graded wrong, and a wallet would accept the shifted one.</td></tr>
+          <tr><td>Wrong unit</td><td>A creator tax of 51,200 basis points where the key was 200.</td></tr>
+          <tr><td>Made-up facts</td><td>Self wrote functions and events into its own notes that the factory does not have. The fact check marked each one cracked (<code>/data/check/&lt;hour&gt;.json</code>).</td></tr>
+          <tr><td>Stale answers</td><td>Notes that keep answers to old questions. Every hour asks about new tokens, so those lines can never score again.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="d" id="limits" aria-labelledby="limits-h">
+      <h2 id="limits-h"><small>06</small>Limits</h2>
+      <ul>
+        <li>The runner calls Cloudflare Workers AI only. For any other model or agent, use the script in <a href="#score">section 02</a>.</li>
+        <li>Every question is about the Pons launch factory on Robinhood Chain (chain 4663).</li>
+        <li>Lessons for Crowd and the Ask API are planned, not built. The seal contract is written and tested, not deployed. The <a href="/docs#status">status table</a> lists what is live.</li>
+      </ul>
+      <p>Pull requests are welcome: new question kinds, grading fixes, tools that read the record. See <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">CONTRIBUTING.md</a>.</p>
+    </section>
+  </main>
+</div>
+</div>
+
+<footer class="site">
+  <div class="gut">
+    <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663).</p>
+    <p><a href="/">Home</a> · <a href="/docs">Docs</a> · <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">X</a></p>
+  </div>
+</footer>
+
+<script>
+// copy buttons: copy the text of the element named in data-copy
+document.querySelectorAll('.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var el = document.getElementById(b.dataset.copy);
+    var done = function (ok) {
+      if (!ok) { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+      b.textContent = ok ? 'Copied' : 'Selected, press copy';
+      setTimeout(function () { b.textContent = 'Copy'; }, 1800);
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(el.textContent).then(function () { done(true); }, function () { done(false); });
+    else done(false);
+  });
+});
+// contents rail: mark the section being read
+var links = Array.prototype.slice.call(document.querySelectorAll('#rail a'));
+if ('IntersectionObserver' in window && links.length) {
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('section.d').forEach(function (s) { io.observe(s); });
+}
+// phone contents: close after a jump
+document.querySelectorAll('.toc-m a').forEach(function (a) { a.addEventListener('click', function () { a.closest('details').open = false; }); });
+// live tally: recount from the record so the numbers on this page never go stale
+fetch('/data/results.jsonl').then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); }).then(function (text) {
+  var hours = text.trim().split('\n').map(function (l) { return JSON.parse(l); }).filter(function (h) { return h.status === 'graded'; });
+  if (!hours.length) return;
+  var t = { hours: hours.length, qs: 0, blank: 0, manual: 0, self: 0, crowd: 0 };
+  hours.forEach(function (h) { h.questions.forEach(function (q) {
+    if (!q.official) return;
+    t.qs++;
+    ['blank', 'manual', 'self', 'crowd'].forEach(function (a) { if (q.answers[a] && q.answers[a].correct) t[a]++; });
+  }); });
+  Object.keys(t).forEach(function (k) { var el = document.querySelector('[data-t="' + k + '"]'); if (el) el.textContent = t[k].toLocaleString('en-US'); });
+  var last = hours[hours.length - 1].hour;
+  document.getElementById('tally-src').innerHTML = 'Right answers per arm, counted live from <code>/data/results.jsonl</code>, hours 0 to ' + last + '.';
+}).catch(function () { /* keep the dated numbers in the page */ });
+</script>
+</body>
+</html>

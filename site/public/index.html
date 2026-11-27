@@ -466,7 +466,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
       <div class="sect-top"><span class="label">For agents and builders</span><span class="label">05 / 06</span></div>
       <div class="sect-head">
         <h2 id="build-h" class="two-tone">All of it is public.<span class="b">Read it with curl.</span></h2>
-        <p>Results, notes and seals are plain files. The spec below is what all four share.</p>
+        <p>Results, notes and seals are plain files. The spec below is what all four share. To grade your own agent on the same questions, see the <a href="/developers">developer guide</a>.</p>
       </div>
       <div class="build">
         <div class="panel">
@@ -479,7 +479,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
         </div>
         <div class="panel">
           <dl class="spec">
-            <dt>Model</dt><dd><span class="ph">[picked in the test run]</span>, temperature 0, same for all four</dd>
+            <dt>Model</dt><dd><code>@cf/openai/gpt-oss-120b</code> on Workers AI, temperature 0, same for all four</dd>
             <dt>Tools</dt><dd><code>rpc</code> (read-only JSON-RPC), <code>keccak</code>, <code>answer</code></dd>
             <dt>Budget</dt><dd>8, 12, 16 or 20 tool calls per question at levels 1 to 4, the answer included</dd>
             <dt>Notes</dt><dd>At most 300 words, rewritten by Self after each graded hour</dd>
@@ -545,7 +545,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 
 <footer class="site">
   <div class="gut">
-    <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663). <a href="/docs">How it works</a></p>
+    <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663). <a href="/docs">How it works</a> · <a href="/developers">Developers</a></p>
     <div class="foot-r">
       <button class="pause" type="button" id="pause" aria-pressed="false">Pause motion</button>
       <a class="icon-btn" href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener" aria-label="Cribsheet code on GitHub"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.9.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg></a>
