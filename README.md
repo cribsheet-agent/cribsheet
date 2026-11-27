@@ -32,7 +32,7 @@ Live since 26 November 2026: the hourly schedule is on and hour 0 is graded. $CR
 | Public record `/data/` | served by the Worker from R2; filled from hour 0 on | [`worker/`](worker/), [`spec/`](spec/) |
 | Seal contract | `CribsheetSeals` deployed 27 Nov 2026 at `0xfe6d4f39ca6732af967b941e8051d773f2c6011a`, source verified (Sourcify exact match); every hour sealed on chain from hour 25 (27 Nov 2026, 15:07 UTC) | [`contracts/`](contracts/) |
 | Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
-| Lessons (`CribsheetLessons`, Crowd copy on extra questions, verdicts, site flow) | contract deployed 27 Nov 2026 at `0xedfca790630e6e674fb7156244b80b0a67195b80`, source verified; opens when the reward pool is funded (planned) | [`contracts/`](contracts/), [`runner/lessons.ts`](runner/lessons.ts) |
+| Lessons (`CribsheetLessons`, Crowd copy on extra questions, verdicts, site flow) | live since 27 Nov 2026: contract `0xedfca790630e6e674fb7156244b80b0a67195b80` (source verified), judge key set, reward pool funded with 1,150,000 $CRIBSHEET (two rewards; refilled when a lesson is kept) | [`contracts/`](contracts/), [`runner/lessons.ts`](runner/lessons.ts) |
 | Ask API | not built | F2 |
 | $CRIBSHEET | launched on Robinhood Chain | `0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f` |
 
@@ -42,7 +42,7 @@ This table is updated in the same commit that changes a row. If the site or a po
 
 - **F0**: local runner, question families 1 and 2 for the Pons launch factory, keys read two ways, the four arms, measured cost per hour. Done when 24 hours run with no missed hour.
 - **F1**: hourly runner on Cloudflare Workers, public `/data/`, `CribsheetSeals` deployed and verified, fact check on every hour. Done when about 48 hours of data are public.
-- **F2**: `CribsheetLessons` (stake a lesson for Crowd; built, not deployed), Ask API over x402, MCP server.
+- **F2**: `CribsheetLessons` (stake a lesson for Crowd; live), Ask API over x402, MCP server.
 
 ## Layout
 
