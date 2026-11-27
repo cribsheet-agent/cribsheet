@@ -9,6 +9,7 @@ import type { Attempt } from '../arms/agent.ts';
 import { sealOnChain } from '../runner/seal-chain.ts';
 import { setRpcUrl } from '../lib/rpc.ts';
 import { answer, finish, prepare, readState, recordMissed, type Prepared, type Store } from '../runner/hour.ts';
+import { composeLive, liveAnswered, liveStart, livePhase } from '../runner/live.ts';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -57,6 +58,7 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
       }
       const hour = (await readState(store)).next_hour;
       await this.env.DATA.put(RUNNING, JSON.stringify({ hour, since: Date.now(), instance: event.instanceId }));
+      await liveStart(store, hour);
       return { ok: true as const, hour };
     });
     if (!claim.ok) return { skipped: claim.reason };
@@ -64,6 +66,7 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
     try {
       const p: Prepared = await step.do('prepare', { retries: { limit: 3, delay: '30 seconds', backoff: 'exponential' }, timeout: '10 minutes' },
         () => prepare(store, firedAt));
+      await step.do('live answering', () => livePhase(store, p.hour, 'answering', { questions: p.questions.length }));
 
       // arms in parallel, questions in order within an arm, one step per answer
       const attempts = {} as Record<Arm, Attempt[]>;
@@ -72,32 +75,44 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
         for (let i = 0; i < p.questions.length; i++) {
           // tool arguments are free-form JSON, so the step returns the attempt as a string
           const a = await step.do(`answer ${arm} ${i + 1}`, { retries: { limit: 3, delay: '20 seconds', backoff: 'exponential' }, timeout: '10 minutes' },
-            async () => JSON.stringify(await answer(cfg, p, arm, i)));
+            async () => {
+              const out = JSON.stringify(await answer(cfg, p, arm, i));
+              await liveAnswered(store, p.hour, arm, i + 1);
+              return out;
+            });
           attempts[arm].push(JSON.parse(a) as Attempt);
         }
       }));
 
+      await step.do('live grading', () => livePhase(store, p.hour, 'grading'));
       const done = await step.do('finish', { retries: { limit: 3, delay: '30 seconds', backoff: 'exponential' }, timeout: '10 minutes' }, async () => {
         const { result, root } = await finish(store, cfg, p, attempts);
         return { hour: result.hour, score: result.score, usd: result.cost.usd, root };
       });
       const { SEALS_ADDRESS, SEAL_KEY } = this.env;
+      let sealTx: string | undefined;
       if (SEALS_ADDRESS && SEAL_KEY) {
+        await step.do('live sealing', () => livePhase(store, done.hour, 'sealing', { score: done.score }));
         // a graded hour stays graded if sealing fails; the failure is written next to the seal bytes
         try {
           const tx = await step.do('seal', { retries: { limit: 5, delay: '1 minute', backoff: 'exponential' }, timeout: '5 minutes' },
             () => sealOnChain({ contract: SEALS_ADDRESS as `0x${string}`, key: SEAL_KEY as `0x${string}`, hour: done.hour, root: done.root as `0x${string}` }));
           await step.do('seal record', () => store.put(`seal/${done.hour}.tx.json`, JSON.stringify(tx, null, 2)));
+          sealTx = 'tx' in tx ? tx.tx : undefined;
         } catch (e) {
           await step.do('seal failed', () => store.put(`seal/${done.hour}.tx.json`, JSON.stringify({ hour: done.hour, root: done.root, error: (e as Error).message.slice(0, 300) }, null, 2)));
         }
       }
+      await step.do('live graded', () => livePhase(store, done.hour, 'graded', { score: done.score, ...(sealTx ? { seal_tx: sealTx } : {}) }));
       return done;
     } catch (e) {
       // record the hour as missed only if it has not been graded (finish advances the state)
       const reason = (e as Error).message;
       await step.do('missed', async () => {
-        if ((await readState(store)).next_hour === claim.hour) await recordMissed(store, reason);
+        if ((await readState(store)).next_hour === claim.hour) {
+          await recordMissed(store, reason);
+          await livePhase(store, claim.hour, 'missed');
+        }
       });
       return { missed: claim.hour, reason };
     } finally {
@@ -117,6 +132,13 @@ export default {
 async function data(path: string, req: Request, env: Env): Promise<Response> {
   const headers = new Headers({ 'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff' });
   if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('method not allowed', { status: 405, headers });
+  if (path === 'live.json') {
+    // progress of the running hour, composed from the per-arm files; changes every few seconds
+    headers.set('content-type', 'application/json; charset=utf-8');
+    headers.set('cache-control', 'no-store');
+    const body = JSON.stringify(await composeLive(r2Store(env.DATA)));
+    return new Response(req.method === 'HEAD' ? null : body, { headers });
+  }
   if (!path || path.startsWith('_') || path.includes('..')) return new Response('not found', { status: 404, headers });
   const obj = await env.DATA.get(path);
   if (!obj) return new Response('not found', { status: 404, headers });

@@ -318,6 +318,36 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 .modal-b a{color:var(--emerald)}
 
 .state-hide{display:none!important}
+
+/* live exam */
+.live{border-top:1px solid var(--line);background:linear-gradient(180deg,#07130d,var(--ground))}
+.live .gut{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:1.2rem 2.5rem;align-items:center;padding-block:1.4rem}
+.live-k{display:flex;align-items:center;gap:.55rem;margin-bottom:.45rem}
+.live-k i{width:8px;height:8px;border-radius:50%;background:var(--ink-faint)}
+.live[data-on="1"] .live-k i{background:var(--emerald);box-shadow:0 0 0 0 #3bdc9299;animation:beat 1.6s var(--ease) infinite}
+@keyframes beat{0%{box-shadow:0 0 0 0 #3bdc9280}70%{box-shadow:0 0 0 10px #3bdc9200}100%{box-shadow:0 0 0 0 #3bdc9200}}
+.live h2{font:650 clamp(1.25rem,1rem + .9vw,1.7rem)/1.15 var(--display);letter-spacing:-.02em}
+.live h2 .t{font-family:var(--mono);font-weight:500;color:var(--emerald)}
+.live .sub{margin:.35rem 0 0;color:var(--ink-dim);font-size:.9rem}
+.steps{display:flex;flex-wrap:wrap;gap:.3rem;margin:.8rem 0 0;padding:0;list-style:none}
+.steps li{font:500 .66rem/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:.45rem .6rem;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-faint)}
+.steps li.done{color:var(--emerald);border-color:var(--emerald-deep)}
+.steps[hidden]{display:none}
+.steps li.now{color:#03140b;background:var(--emerald);border-color:var(--emerald)}
+.lanes{display:grid;gap:.55rem}
+.lane{display:grid;grid-template-columns:5.2rem minmax(0,1fr) 3.2rem;align-items:center;gap:.8rem}
+.lane .n{font:500 .74rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--silver)}
+.lane.em .n{color:var(--emerald)}
+.lane .c{font:500 .8rem var(--mono);color:var(--ink-dim);text-align:right}
+.shards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}
+.shards i{height:14px;clip-path:polygon(12% 0,100% 8%,88% 100%,0 86%);background:var(--line-2);transition:background .5s var(--ease)}
+.shards i.on{background:var(--emerald)}
+.lane:not(.em) .shards i.on{background:var(--silver)}
+.shards i.cur{background:#3bdc9259;animation:think 1.2s ease-in-out infinite}
+@keyframes think{50%{background:#3bdc92b3}}
+.live-f{grid-column:1/-1;margin:0;color:var(--ink-faint);font-size:.78rem}
+.live-f a{color:var(--emerald)}
+@media (max-width:860px){.live .gut{grid-template-columns:1fr}.lane{grid-template-columns:4.6rem minmax(0,1fr) 2.8rem;gap:.6rem}}
 </style>
 </head>
 <body>
@@ -366,7 +396,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
         <h1 id="h1"><span class="a">Four agents. One exam.</span><span class="b">Only the notes differ.</span></h1>
         <p class="lede">Four copies of the same model answer fresh questions about the last hour of Robinhood Chain launches, every hour. One brings nothing, one a fixed manual, one notes it rewrites itself, one those notes plus lessons from holders. The chain writes every key.</p>
         <div class="actions">
-          <a class="btn btn-em" href="#record">Watch this hour <span class="arr" aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-em" href="#live">Watch this hour <span class="arr" aria-hidden="true">&rarr;</span></a>
           <a class="btn btn-ghost" href="#lessons">Hand them a lesson</a>
         </div>
         <!-- ca --><div class="ca" id="ca"><span class="k">$CRIBSHEET · Robinhood Chain</span><code id="ca-addr">0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f</code><button type="button" id="ca-copy" aria-label="Copy the contract address">Copy</button></div>
@@ -374,6 +404,19 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
       </div>
 
       <aside class="card" aria-label="Scorecard of the latest hour" id="scorecard"></aside>
+    </div>
+  </section>
+
+  <section class="live" id="live" aria-labelledby="live-h" data-on="0">
+    <div class="gut">
+      <div>
+        <div class="live-k label"><i aria-hidden="true"></i><span id="live-k">Exam status</span></div>
+        <h2 id="live-h">Reading the exam status</h2>
+        <p class="sub" id="live-sub" aria-live="polite"></p>
+        <ol class="steps" id="live-steps" aria-label="Phases of an exam hour"></ol>
+      </div>
+      <div class="lanes" id="live-lanes"></div>
+      <p class="live-f">Progress only while an hour runs: answers and scores appear after grading. Raw: <a href="/data/live.json">/data/live.json</a></p>
     </div>
   </section>
 
@@ -848,5 +891,86 @@ if('IntersectionObserver' in window){new IntersectionObserver(function(en){visib
 </script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module" src="hero3d.js"></script>
+<script>
+/* ---------- live exam status from /data/live.json ---------- */
+(function(){
+  var NAMES=["Blank","Manual","Self","Crowd"], KEYS=["blank","manual","self","crowd"];
+  var STEPS=[["prepare","Questions"],["answering","Answering"],["grading","Grading"],["sealing","Sealing"],["graded","Graded"]];
+  var root=document.getElementById('live'), H=document.getElementById('live-h'), SUB=document.getElementById('live-sub'),
+      K=document.getElementById('live-k'), ST=document.getElementById('live-steps'), LN=document.getElementById('live-lanes');
+  var view=null, skew=0, lastPhase=null, timer=null;
+  function put(el,h){if(el.innerHTML!==h)el.innerHTML=h;}
+  function nowMs(){return Date.now()+skew;}
+  function nextFire(t){var d=new Date(t);d.setUTCMinutes(1,0,0);if(d.getTime()<=t)d.setUTCHours(d.getUTCHours()+1);return d.getTime();}
+  function mmss(ms){ms=Math.max(0,ms);var m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000);return m+':'+(s<10?'0':'')+s;}
+  function ago(ms){var m=Math.round(ms/60000);return m<1?'just now':m===1?'1 minute ago':m+' minutes ago';}
+  function utc(t){var d=new Date(t);return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC';}
+  function running(v){return v&&['prepare','answering','grading','sealing'].indexOf(v.phase)>=0&&!v.stale;}
+  function lanes(v){
+    var n=(v&&v.questions)||8, run=running(v), done=v&&v.phase==='graded';
+    LN.innerHTML=NAMES.map(function(a,i){
+      var k=KEYS[i], got=v&&v.answered?(v.answered[k]||0):0, cells='';
+      var lit=done&&v.score?v.score[k]:got;
+      for(var q=0;q<n;q++){cells+='<i class="'+(q<lit?'on':(run&&v.phase==='answering'&&q===got?'cur':''))+'"></i>';}
+      var c=done&&v.score?v.score[k]+'/'+n:(run?got+'/'+n:'&ndash;');
+      var lbl=done&&v.score?a+': '+v.score[k]+' of '+n+' right':run?a+': '+got+' of '+n+' answered':a+': waiting';
+      return '<div class="lane'+(i>=2?' em':'')+'" role="img" aria-label="'+lbl+'"><span class="n">'+a+'</span><span class="shards">'+cells+'</span><span class="c">'+c+'</span></div>';
+    }).join('');
+  }
+  function steps(v){
+    var at=-1;STEPS.forEach(function(s,i){if(v&&v.phase===s[0])at=i;});
+    ST.innerHTML=STEPS.map(function(s,i){return '<li class="'+(i<at?'done':i===at?'now':'')+'"'+(i===at?' aria-current="step"':'')+'>'+s[1]+'</li>';}).join('');
+    ST.hidden=!running(v);
+  }
+  function nextLine(){var nf=nextFire(nowMs());return 'Next exam starts at '+utc(nf)+', in <span class="t">'+mmss(nf-nowMs())+'</span>';}
+  function paint(){
+    var v=view;
+    root.dataset.on=running(v)?'1':'0';
+    if(!v){put(K,'Exam status');put(H,'Exam status could not load');put(SUB,'The raw record stays public at /data/results.jsonl.');lanes(null);steps(null);return;}
+    if(running(v)){
+      var total=(v.questions||8)*4, got=KEYS.reduce(function(s,k){return s+((v.answered&&v.answered[k])||0);},0);
+      put(K,'Live · hour '+v.hour);
+      var t={prepare:'Hour '+v.hour+': reading the chain, writing questions',answering:'Hour '+v.hour+': four agents answering',grading:'Hour '+v.hour+': grading against the chain',sealing:'Hour '+v.hour+': sealing the result on chain'}[v.phase];
+      put(H,t);
+      put(SUB,(v.phase==='answering'?got+' of '+total+' answers in. ':'')+'Started '+ago(nowMs()-v.started)+'.');
+    } else if(v.phase==='graded'){
+      put(K,'Hour '+v.hour+' graded');
+      put(H,nextLine());
+      put(SUB,'Hour '+v.hour+' was graded '+ago(nowMs()-v.since)+(v.seal_tx?' and sealed on chain.':'.')+' <a href="#record">See its questions and keys</a>.');
+    } else if(v.phase==='missed'){
+      put(K,'Hour '+v.hour+' missed');
+      put(H,nextLine());
+      put(SUB,'Hour '+v.hour+' did not finish. It is recorded as missed in results.jsonl, never deleted.');
+    } else if(v.stale){
+      put(K,'Hour '+v.hour+' is late');
+      put(H,'Hour '+v.hour+' is taking longer than usual');
+      put(SUB,'Started '+ago(nowMs()-v.started)+'. If it does not finish it is recorded as missed.');
+    } else {
+      put(K,'Exam status');put(H,nextLine());put(SUB,'');
+    }
+    lanes(v);steps(v);
+  }
+  function refreshRecord(){
+    fetch('/data/results.jsonl',{cache:'no-store'}).then(function(r){return r.ok?r.text():Promise.reject();}).then(function(t){
+      LIVE=t.split('\n').filter(Boolean).map(function(l){return JSON.parse(l);});
+      if(graded().length){curHour=graded()[graded().length-1].hour;setState('live');}
+    }).catch(function(){});
+  }
+  function poll(){
+    clearTimeout(timer);
+    fetch('/data/live.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(v){
+      skew=v.now-Date.now();
+      if(lastPhase&&lastPhase!=='graded'&&lastPhase!=='idle'&&v.phase==='graded')refreshRecord();
+      lastPhase=v.phase;view=v;paint();
+    }).catch(function(){view=null;paint();}).then(function(){
+      var wait=running(view)?6000:Math.min(30000,Math.max(3000,nextFire(nowMs())-nowMs()+4000));
+      timer=setTimeout(poll,document.hidden?60000:wait);
+    });
+  }
+  setInterval(function(){if(view&&!running(view))paint();},1000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
+  poll();
+})();
+</script>
 </body>
 </html>
