@@ -13,7 +13,9 @@ Deployed on Robinhood Chain (4663) on 27 November 2026 at `0xfe6d4f39ca6732af967
 
 ## CribsheetLessons
 
-[`src/CribsheetLessons.sol`](src/CribsheetLessons.sol) holds lesson stakes for the Crowd arm (see "Lessons (F2)" in [`../METHOD.md`](../METHOD.md)). Not deployed yet.
+[`src/CribsheetLessons.sol`](src/CribsheetLessons.sol) holds lesson stakes for the Crowd arm (see "Lessons (F2)" in [`../METHOD.md`](../METHOD.md)).
+
+Deployed on Robinhood Chain (4663) on 27 November 2026 at `0xedfca790630e6e674fb7156244b80b0a67195b80` (tx `0xfb3df40f47acd5537b0c250b0aed04414558515b19f4e53561c70a1a6ef2eb48`, block 124,487,397). Stake 1,150,000 $CRIBSHEET (about $10 at the last curve trade on 27 November 2026, 19:11 UTC), reward 575,000 (50%). The judge is `0x5c5B05b8CF34B68c83dCeDcf4a60868B16A10814`. Source verified on Sourcify, exact match: https://repo.sourcify.dev/4663/0xedfca790630e6e674fb7156244b80b0a67195b80
 
 - `token`, `judge`, `stake` and `rewardBps` are fixed at deployment; `reward = stake * rewardBps / 10000`. No owner, no setter, no upgrade path.
 - `submit(text, kind)` takes `stake` tokens (approve first) with at most 280 bytes of text (no control characters except a line break) and a kind number: 0 `curve`, 1 `creator`, 2 `launch_block`, 3 `creator_tax`, 4 `graduated`, 5 `hour_launch_count`, 6 `creator_24h`, 7 `creator_7d`. It reverts with `Full` when 12 lessons are testing or kept, `PoolTooSmall` when the pool cannot back one more reward, and `Underfunded` if, after the transfer, the contract would hold less than it owes (a token that takes a cut on transfer).
