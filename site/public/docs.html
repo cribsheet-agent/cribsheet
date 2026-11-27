@@ -216,7 +216,7 @@ footer.site a{color:var(--ink-dim)}
         <li><b>Answers</b><span>The four arms answer at the same time with the same model, prompt, tools and call budget. Every tool call is kept.</span></li>
         <li><b>Grading</b><span>Each answer is compared with the key by exact match. No model is asked whether an answer is right.</span></li>
         <li><b>Notes</b><span>Self rewrites its notes from the hour: its answers, the keys, how each key was read, and the fact check of its old notes.</span></li>
-        <li><b>Seal</b><span>The hour's bytes are published at <code>/data/seal/&lt;hour&gt;</code>. Writing their hash on chain waits for the seal contract to be deployed (see <a href="#status">What is live</a>).</span></li>
+        <li><b>Seal</b><span>The hour's bytes are published at <code>/data/seal/&lt;hour&gt;</code>. Their SHA-256 is written to <code>CribsheetSeals</code> on chain (<code>0xfe6d4f39ca6732af967b941e8051d773f2c6011a</code>) once per hour, and can never be changed.</span></li>
       </ol>
       <p class="dim" style="margin-top:1rem">A missed hour is recorded as missed, with the reason. It is never filled in later.</p>
     </section>
@@ -311,7 +311,7 @@ console.log(hours.at(-1).score);</pre></div>
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"0x7ed598bcef8bd9edd8c97a195c6d13f40801ec7e","data":"0x3cf28b5a0000000000000000000000006aa9decc666225ef82d55ad364d96c3e0e9d9a05"},"latest"]}'</pre></div>
       <p>In the result, the second 32-byte word ends in <code>0ffa57c97da367731d34ed758c046a2a39d0b18f</code>, the key in the record.</p>
-      <p>To check a seal, hash the published bytes. Once the seal contract is deployed, the same hash will be on chain for that hour:</p>
+      <p>To check a seal, hash the published bytes and compare with <code>rootOf(hour)</code> on the seal contract. <code>node tools/verify-seal.ts &lt;hour&gt;</code> in the repository does both and also checks the hashes inside the seal:</p>
       <div class="code"><div class="cap"><span>Hash of hour 0's seal bytes</span><button class="copy" type="button" data-copy="c4">Copy</button></div><pre id="c4">curl -s https://cribsheet.pro/data/seal/0 | shasum -a 256</pre></div>
       <p>The whole method, word for word, is in <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/METHOD.md" target="_blank" rel="noopener">METHOD.md</a>. Where the code and that file differ, it is a bug.</p>
     </section>
@@ -327,7 +327,7 @@ console.log(hours.at(-1).score);</pre></div>
           <tr><td>Question generator and key readers</td><td><span class="st live">Live</span></td></tr>
           <tr><td>Notes fact check</td><td><span class="st live">Live</span></td></tr>
           <tr><td>Seal bytes <code>/data/seal/&lt;hour&gt;</code></td><td><span class="st live">Live</span></td></tr>
-          <tr><td>Seal contract on chain</td><td><span class="st part">Written and tested</span>, not deployed</td></tr>
+          <tr><td>Seal contract on chain</td><td><span class="st live">Deployed</span> 27 Nov 2026 at <code>0xfe6d4f39ca6732af967b941e8051d773f2c6011a</code>, <a href="https://repo.sourcify.dev/4663/0xfe6d4f39ca6732af967b941e8051d773f2c6011a" target="_blank" rel="noopener">source verified</a>. Sealing starts once the signer key is set</td></tr>
           <tr><td>Lessons for Crowd, Ask API</td><td><span class="st not">Not built</span>, planned</td></tr>
         </tbody>
       </table></div>

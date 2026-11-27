@@ -1,5 +1,6 @@
 // Checks one sealed hour end to end, with nothing but the public site and the public RPC:
 //   node tools/verify-seal.ts <hour> [--contract 0x...] [--site https://cribsheet.pro]
+// The contract defaults to CribsheetSeals on Robinhood Chain, deployed 27 Nov 2026.
 // 1. sha256 of /data/seal/<hour> equals CribsheetSeals.rootOf(hour) on chain;
 // 2. the hashes inside the seal match the hour's results line and the three notes files.
 import { createHash } from 'node:crypto';
@@ -8,7 +9,7 @@ import { ethCall } from '../lib/rpc.ts';
 import { selector } from '../lib/keccak.ts';
 
 const { values, positionals } = parseArgs({ allowPositionals: true, options: {
-  contract: { type: 'string' },
+  contract: { type: 'string', default: '0xfe6d4f39ca6732af967b941e8051d773f2c6011a' },
   site: { type: 'string', default: 'https://cribsheet.pro' },
 } });
 const hour = Number(positionals[0]);
