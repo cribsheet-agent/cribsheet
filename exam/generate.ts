@@ -30,19 +30,25 @@ export function plan(level: number, rand: Rand): Kind[] {
 
 export interface Generated { window: ExamWindow; seed: string; questions: Question[]; dropped: Dropped[] }
 
-export async function generate(opts: { hour: number; level: number; start_block: number; end_block: number; key_block: number }): Promise<Generated> {
-  const { hour, level, start_block, end_block, key_block } = opts;
+/**
+ * The hour's official questions, or with `extra` a set of questions of the given kinds outside
+ * the official score (lesson tests). Extra questions get their own seed, `tag` in the seed text,
+ * so they never repeat the official draw.
+ */
+export async function generate(opts: { hour: number; level: number; start_block: number; end_block: number; key_block: number; extra?: { kinds: Kind[]; tag: string; avoid?: string[] } }): Promise<Generated> {
+  const { hour, level, start_block, end_block, key_block, extra } = opts;
   const startHash = (await rpc<{ hash: string }>('eth_getBlockByNumber', ['0x' + start_block.toString(16), false])).hash;
-  const seed = keccakText(`cribsheet:${hour}:${startHash}`);
+  const seed = keccakText(extra ? `cribsheet:${hour}:${extra.tag}:${startHash}` : `cribsheet:${hour}:${startHash}`);
   const rand = new Rand(seed);
   const window: ExamWindow = { hour, start_block, end_block, key_block };
 
   const launches = await launchesBetween(start_block, end_block);
   if (!launches.length) throw new Error(`no launches between ${start_block} and ${end_block}`);
-  const kinds = plan(level, rand);
+  const kinds = extra ? extra.kinds : plan(level, rand);
   const questions: Question[] = [];
   const dropped: Dropped[] = [];
-  const used = new Set<string>();
+  // extra questions stay off the tokens the official questions already ask about
+  const used = new Set<string>(extra?.avoid ?? []);
   const freshToken = (): Launch => {
     const free = launches.filter(l => !used.has(l.token));
     const l = rand.pick(free.length ? free : launches);
@@ -63,8 +69,8 @@ export async function generate(opts: { hour: number; level: number; start_block:
 
   for (let i = 0; i < kinds.length; i++) {
     const kind = kinds[i]!;
-    const id = `h${hour}-q${i + 1}`;
-    const base = { id, kind, level: KIND_LEVEL[kind], official: true, budget: LEVEL_BUDGET[KIND_LEVEL[kind]]! };
+    const id = extra ? `h${hour}-${extra.tag}-q${i + 1}` : `h${hour}-q${i + 1}`;
+    const base = { id, kind, level: KIND_LEVEL[kind], official: !extra, budget: LEVEL_BUDGET[KIND_LEVEL[kind]]! };
     try {
       questions.push({ ...base, ...await build(kind) });
     } catch (e) {

@@ -91,4 +91,17 @@ Cracked lines stay visible on the site. They are not deleted from the history.
 
 ## Lessons (F2)
 
-A holder stakes $CRIBSHEET with one lesson (at most 280 bytes) and names the question kind it should help with. For three hours a copy of Crowd reads the lesson; each of those hours adds at least three questions of that kind outside the official score. The lesson is kept if the copy gets more right on target and no fewer elsewhere. Kept: stake back plus a reward. Otherwise the stake burns. The runner's role in that contract is a trust point and is described in [`SECURITY.md`](SECURITY.md).
+Status: built and tested, not deployed. The stake size and the reward pool are announced before the contract goes live.
+
+A holder stakes $CRIBSHEET with one lesson (at most 280 bytes of plain text) and names the question kind it should help with. For three hours a copy of Crowd reads the lesson; each of those hours adds at least three questions of that kind outside the official score. The lesson is kept if the copy gets more right on target and no fewer elsewhere. Kept: stake back plus a reward. Otherwise the stake burns. The runner's role in that contract is a trust point and is described in [`SECURITY.md`](SECURITY.md).
+
+How a test runs ([`runner/lessons.ts`](runner/lessons.ts)):
+
+- **Copy.** The copy's last block is Crowd's, with the lesson added to its lessons. It answers the hour's official questions and four extra questions of the lesson's kind. The real Crowd answers the same extra questions. The extra questions come from their own seed (`cribsheet:<hour>:L<id>r<round>:<hash of the hour's first block>`), skip the tokens the official questions ask about, and have their keys read two ways like every other question. An hour counts only if at least three were built. A `hour_launch_count` lesson has only one such question per hour (the hour's block range), so its four extra questions are the same question asked as four separate attempts.
+- **Target and elsewhere.** Target is the extra questions plus the official questions of the lesson's kind; elsewhere is the official questions of every other kind. After three counted hours: kept if, with the lesson, more right on target and no fewer right elsewhere.
+- **Verdict.** Written to `/data/lessons/<id>/verdict.json`; its SHA-256 goes on chain with the settlement. Every tested hour is public at `/data/lessons/<id>/hours/<hour>.json` (both blocks, questions, keys, both sides' answers) with transcripts next to it.
+- **Crowd.** From the hour after a lesson is kept, Crowd reads it. Crowd reads only kept lessons, read from the contract when the hour's questions are made.
+- **Re-test.** Every 48 hours a kept lesson is tested again, the other way round: Crowd (with it) against a copy without it. If it no longer helps by the same rule, it is retired, without penalty.
+- **Slots.** At most 12 lessons are testing or kept at once. Two are tested per hour; the others wait their turn.
+
+The contract ([`CribsheetLessons`](contracts/src/CribsheetLessons.sol)) fixes the stake, the reward rate (50% of the stake) and the judge at deployment. A lesson can be settled from three hours after it was staked and no later than 7 days; after that its author can take the stake back. Each submission reserves its reward from the pool, so a kept lesson is always paid in full; a lesson cannot be staked while the pool cannot back one more reward.

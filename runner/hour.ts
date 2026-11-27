@@ -14,6 +14,7 @@ import { attempt, type Attempt } from '../arms/agent.ts';
 import { rewriteNotes } from '../arms/notes.ts';
 import { checkNotes, type CheckedItem } from '../checker/check.ts';
 import { sealBytes, sealRoot } from './seal.ts';
+import { keptTexts, prepareTests, readIndex, recordTests, type Board, type LessonTest } from './lessons.ts';
 
 export interface Store {
   get(path: string): Promise<string | null>;
@@ -39,10 +40,17 @@ export interface Prepared {
   questions: Question[]; dropped: Dropped[];
   blocks: Record<Arm, string>;
   check: CheckedItem[];
+  /** Lesson tests this hour (F2), outside the official score. */
+  tests: LessonTest[];
+  /** Where Crowd's lessons came from this hour. */
+  lessons_from?: string;
 }
 
+/** Lessons for an hour: `load` reads the board (CribsheetLessons, or test data in staging). */
+export interface LessonsSource { load: () => Promise<Board>; slots: number }
+
 /** `at`: a unix time inside the hour after the one to examine (default: the chain head's time). */
-export async function prepare(store: Store, at?: number, log: (s: string) => void = () => {}): Promise<Prepared> {
+export async function prepare(store: Store, at?: number, log: (s: string) => void = () => {}, lessons?: LessonsSource): Promise<Prepared> {
   const state = await readState(store);
   const hour = state.next_hour;
 
@@ -57,14 +65,49 @@ export async function prepare(store: Store, at?: number, log: (s: string) => voi
   const gen = await generate({ hour, level: state.level, start_block, end_block, key_block });
   log(`${gen.questions.length} questions, ${gen.dropped.length} dropped`);
 
+  // Crowd reads the lessons kept on chain; if the board cannot be read, the last recorded one
+  let board: Board | null = null, crowdLessons = state.lessons, lessons_from: string | undefined;
+  if (lessons) {
+    try {
+      board = await lessons.load();
+      crowdLessons = keptTexts(board);
+      lessons_from = board.fixture ? 'test data' : `${board.contract} at block ${board.read_at_block}`;
+    } catch (e) {
+      const prev = await readIndex(store);
+      crowdLessons = prev ? prev.lessons.filter(l => l.status === 'kept').map(l => l.text) : state.lessons;
+      lessons_from = `last recorded board (read failed: ${(e as Error).message.slice(0, 120)})`;
+      log(`lessons: ${lessons_from}`);
+    }
+  }
+
   // context blocks and the fact check are written before any answer
-  const blocks = Object.fromEntries(ARMS.map(a => [a, lastBlock(a, state.self_notes, state.lessons)])) as Record<Arm, string>;
+  const blocks = Object.fromEntries(ARMS.map(a => [a, lastBlock(a, state.self_notes, crowdLessons)])) as Record<Arm, string>;
   for (const a of ARMS) await store.put(`notes/${a}/${hour}.md`, blocks[a]);
   const sample = gen.questions.map(q => q.text.match(/token (0x[0-9a-f]{40})/)?.[1]).find(Boolean) ?? '0x' + '0'.repeat(40);
   const check = state.self_notes.trim() ? await checkNotes(state.self_notes, sample) : [];
   await store.put(`check/${hour}.json`, JSON.stringify({ hour, notes: 'self', items: check }, null, 2));
 
-  return { hour, level: state.level, seed: gen.seed, start_block, end_block, key_block, questions: gen.questions, dropped: gen.dropped, blocks, check };
+  const tests = board && lessons ? await prepareTests({
+    store, board, hour, level: state.level, now: headTime, slots: lessons.slots, selfNotes: state.self_notes,
+    window: { start_block, end_block, key_block }, official: gen.questions,
+  }) : [];
+  for (const t of tests) log(`lesson ${t.id} ${t.mode} round ${t.round}: ${t.short ?? `${t.extra.length} extra ${t.kind} questions`}`);
+
+  return { hour, level: state.level, seed: gen.seed, start_block, end_block, key_block, questions: gen.questions, dropped: gen.dropped, blocks, check, tests, ...(lessons_from ? { lessons_from } : {}) };
+}
+
+/** One side of a lesson test answers one question: the copy (official then extra), or Crowd (extra). */
+export function answerLesson(cfg: ModelConfig, p: Prepared, t: LessonTest, side: 'copy' | 'crowd', i: number): Promise<Attempt> {
+  const q = side === 'copy' ? [...p.questions, ...t.extra][i]! : t.extra[i]!;
+  return attempt(cfg, side === 'copy' ? t.block : p.blocks.crowd, q.text, q.budget);
+}
+
+export const lessonQuestionCount = (p: Prepared, t: LessonTest, side: 'copy' | 'crowd'): number =>
+  t.short ? 0 : side === 'copy' ? p.questions.length + t.extra.length : t.extra.length;
+
+/** After finish: each tested lesson's hour, and verdicts after the third. */
+export function recordLessons(store: Store, p: Prepared, crowdOfficial: Attempt[], copy: Record<number, Attempt[]>, crowdExtra: Record<number, Attempt[]>): Promise<void> {
+  return recordTests(store, { hour: p.hour, official: p.questions, tests: p.tests, crowdBlock: p.blocks.crowd, copy, crowdExtra, crowdOfficial });
 }
 
 export function answer(cfg: ModelConfig, p: Prepared, arm: Arm, i: number): Promise<Attempt> {
@@ -99,6 +142,8 @@ export async function finish(store: Store, cfg: ModelConfig, p: Prepared, attemp
       })),
     })),
     dropped: p.dropped,
+    ...(p.lessons_from ? { lessons_from: p.lessons_from } : {}),
+    ...(p.tests?.length ? { lesson_tests: p.tests.map(t => ({ lesson: t.id, round: t.round, mode: t.mode, kind: t.kind, extra: t.extra.length, ...(t.short ? { short: t.short } : {}) })) } : {}),
     ...(rewrite.kept ? { notes_kept: rewrite.kept } : {}),
     cost: { arms, notes_rewrite, neurons, usd: Number(neuronsToUsd(neurons).toFixed(4)) },
   };
@@ -122,9 +167,9 @@ export async function finish(store: Store, cfg: ModelConfig, p: Prepared, attemp
 }
 
 /** Local: the whole hour in one process, arms in parallel, questions in order within an arm. */
-export async function runHour(opts: { store: Store; cfg: ModelConfig; at?: number; log?: (s: string) => void }) {
+export async function runHour(opts: { store: Store; cfg: ModelConfig; at?: number; log?: (s: string) => void; lessons?: LessonsSource }) {
   const log = opts.log ?? (() => {});
-  const p = await prepare(opts.store, opts.at, log);
+  const p = await prepare(opts.store, opts.at, log, opts.lessons);
   const attempts = {} as Record<Arm, Attempt[]>;
   await Promise.all(ARMS.map(async arm => {
     attempts[arm] = [];
@@ -135,7 +180,15 @@ export async function runHour(opts: { store: Store; cfg: ModelConfig; at?: numbe
       log(`  ${arm.padEnd(6)} ${q.id} ${q.kind.padEnd(17)} ${isCorrect(q, a.answer) ? 'right' : 'wrong'} (${a.calls.length}/${q.budget}${a.stopped === 'answered' ? '' : ', ' + a.stopped})`);
     }
   }));
-  return finish(opts.store, opts.cfg, p, attempts);
+  const copy: Record<number, Attempt[]> = {}, crowdExtra: Record<number, Attempt[]> = {};
+  await Promise.all(p.tests.flatMap(t => (['copy', 'crowd'] as const).map(async side => {
+    const out: Attempt[] = [];
+    for (let i = 0; i < lessonQuestionCount(p, t, side); i++) out.push(await answerLesson(opts.cfg, p, t, side, i));
+    (side === 'copy' ? copy : crowdExtra)[t.id] = out;
+  })));
+  const done = await finish(opts.store, opts.cfg, p, attempts);
+  if (p.tests.length) await recordLessons(opts.store, p, attempts.crowd, copy, crowdExtra);
+  return done;
 }
 
 /** A failed hour is written as missed, with the reason, and never back-filled. */

@@ -36,7 +36,8 @@
       "routes": [],
       "r2_buckets": [{ "binding": "DATA", "bucket_name": "cribsheet-data-staging" }],
       "ai": { "binding": "AI" },
-      "vars": { "MODEL": "@cf/openai/gpt-oss-120b" },
+      // lessons come from test data in the staging bucket (_internal/lessons-fixture.json); no judge key
+      "vars": { "MODEL": "@cf/openai/gpt-oss-120b", "ENVIRONMENT": "staging", "LESSON_SLOTS": "2" },
       "workflows": [{ "name": "cribsheet-hour-staging", "binding": "HOUR", "class_name": "ExamHour" }]
     }
   }
