@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `CribsheetSeals` deployed on Robinhood Chain at `0xfe6d4f39ca6732af967b941e8051d773f2c6011a` (27 November 2026, block 124,310,489) and verified on Sourcify (exact match). The Worker has its address; hours are sealed on chain once the signer key is set as a secret. `tools/verify-seal.ts` uses this contract by default. The home page check uses `rootOf`, the contract's real getter.
 - `/developers` (in the header menu, where Builders was): how to read the record, grade your own agent on past questions with the exam's own normalising (`score.mjs`), run an hour locally and test your own manual. The home page names the model (`@cf/openai/gpt-oss-120b`) instead of a placeholder.
 - Self's notes rewrite gets 8,000 tokens (was 3,000), and an empty rewrite keeps the previous notes instead of replacing them; the hour records `notes_kept`. After hour 4 (26 November 2026) the rewrite used all 3,000 tokens before writing anything and left Self's notes empty. At 18:42 UTC, before hour 5, the notes were put back from `/data/notes/self/4.md` (the notes Self took into hour 4), which is what the new rule keeps. No score or result changed.
 - Pre-launch site at cribsheet.pro.

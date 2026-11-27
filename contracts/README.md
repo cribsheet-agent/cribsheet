@@ -9,7 +9,7 @@
 - `rootOf(hour)` and `sealedAt(hour)` are public; each seal emits `Sealed(hour, root)`.
 - No owner, no upgrade path, no funds held.
 
-Status: written and tested, not deployed. The address will be listed in the main README once it is deployed and verified.
+Deployed on Robinhood Chain (4663) on 27 November 2026 at `0xfe6d4f39ca6732af967b941e8051d773f2c6011a` (tx `0x0da3cda7787b0532147b89118ba54b67b777e4f4afde5479e92099d2ee2cbc5e`, block 124,310,489). The sealer is `0x0A8F62EebEa88f17f3eD915b4FE8eD19b2055272`. Source verified on Sourcify, exact match: https://repo.sourcify.dev/4663/0xfe6d4f39ca6732af967b941e8051d773f2c6011a
 
 ## Build and test
 

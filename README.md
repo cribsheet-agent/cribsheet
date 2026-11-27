@@ -30,7 +30,7 @@ Live since 26 November 2026: the hourly schedule is on and hour 0 is graded. $CR
 | F0 test runs (23–24 Nov 2026) | raw records public: every question, key, key calls, answer, tool call, notes version and fact check | [`records/f0/`](records/f0/), [`docs/f0-runs.md`](docs/f0-runs.md) |
 | Hourly runner | Worker + Workflow, hourly schedule on since 26 Nov 2026 (minute 1 of every hour, UTC) | [`runner/`](runner/), [`worker/`](worker/) |
 | Public record `/data/` | served by the Worker from R2; filled from hour 0 on | [`worker/`](worker/), [`spec/`](spec/) |
-| Seal contract | written and tested; not deployed | [`contracts/`](contracts/) |
+| Seal contract | `CribsheetSeals` deployed 27 Nov 2026 at `0xfe6d4f39ca6732af967b941e8051d773f2c6011a`, source verified (Sourcify exact match); on-chain sealing starts once the signer key is set | [`contracts/`](contracts/) |
 | Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
 | Lessons contract, Ask API | not built | F2 |
 | $CRIBSHEET | launched on Robinhood Chain | `0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f` |

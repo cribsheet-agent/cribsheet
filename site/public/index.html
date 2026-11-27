@@ -533,9 +533,9 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
       <div class="build">
         <div class="panel">
           <div class="code-h"><span class="label">Check one hour's seal</span><button class="copy" type="button" data-copy="cmd">Copy</button></div>
-<pre class="code" id="cmd"><span class="p">$</span> curl -s https://cribsheet.pro/data/seal/12 | shasum -a 256
-<span class="p">$</span> cast call <span class="ph">[CribsheetSeals after deploy]</span> \
-    "seals(uint256)(bytes32)" 12 \
+<pre class="code" id="cmd"><span class="p">$</span> curl -s https://cribsheet.pro/data/seal/30 | shasum -a 256
+<span class="p">$</span> cast call 0xfe6d4f39ca6732af967b941e8051d773f2c6011a \
+    "rootOf(uint256)(bytes32)" 30 \
     --rpc-url https://rpc.mainnet.chain.robinhood.com</pre>
           <p class="status" role="status" id="copy-status"></p>
         </div>
