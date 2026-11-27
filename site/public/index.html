@@ -166,6 +166,10 @@ nav.main a:active{background:var(--ground-2)}
 .hstrip{border-block:1px solid var(--line);background:var(--ground)}
 .hstrip .row{display:flex;overflow-x:auto;scrollbar-width:none}
 .hstrip .row::-webkit-scrollbar{display:none}
+.hstrip .row.mq{cursor:grab;user-select:none;-webkit-user-select:none}
+.hstrip .row.mq.drag{cursor:grabbing}
+.hstrip .row.mq.drag .hcell{pointer-events:none}
+.hcell img{-webkit-user-drag:none}
 .hcell{flex:0 0 auto;min-width:150px;padding:.9rem 1.1rem;border-right:1px solid var(--line);text-decoration:none}
 .hcell .label{display:block;margin-bottom:.3rem}
 .hcell b{font:650 1.35rem var(--display);color:var(--emerald)}
@@ -740,9 +744,56 @@ function renderScorecard(){
   }
   el.innerHTML=h;
 }
+// Hour strip: drifts slowly to the left, and on desktop it can be dragged with the mouse.
+// It holds still under the pointer or keyboard focus, for reduced motion and after "Pause motion".
+var MQ={row:null,raf:0,last:0,acc:0,hold:false,drag:null,speed:22};
+function mqHalf(){return MQ.row.scrollWidth/2;}
+function mqWrap(){var r=MQ.row,h=mqHalf();if(r.scrollLeft>=h)r.scrollLeft-=h;else if(r.scrollLeft<=0)r.scrollLeft+=h;}
+function mqStep(now){
+  var r=MQ.row;if(!r)return;
+  var dt=Math.min(64,now-(MQ.last||now));MQ.last=now;
+  var stopped=MQ.hold||MQ.drag||reduce||(pbtn&&pbtn.getAttribute('aria-pressed')==='true');
+  if(!stopped){MQ.acc+=MQ.speed*dt/1000;var px=Math.floor(MQ.acc);if(px){r.scrollLeft+=px;MQ.acc-=px;mqWrap();}}
+  MQ.raf=requestAnimationFrame(mqStep);
+}
+function marquee(row){
+  var prev=MQ.row?MQ.row.scrollLeft:0;
+  cancelAnimationFrame(MQ.raf);MQ.row=null;MQ.drag=null;MQ.hold=false;
+  if(!row||!row.children.length||row.scrollWidth<=row.clientWidth+1)return;
+  // a second copy makes the loop seamless; it is hidden from screen readers and the tab order
+  Array.prototype.slice.call(row.children).forEach(function(c){var d=c.cloneNode(true);d.setAttribute('aria-hidden','true');d.tabIndex=-1;row.appendChild(d);});
+  row.classList.add('mq');MQ.row=row;
+  row.scrollLeft=prev%mqHalf();
+  row.addEventListener('mouseenter',function(){MQ.hold=true;});
+  row.addEventListener('mouseleave',function(){MQ.hold=false;});
+  row.addEventListener('focusin',function(){MQ.hold=true;});
+  row.addEventListener('focusout',function(){MQ.hold=false;});
+  row.addEventListener('touchstart',function(){MQ.hold=true;},{passive:true});
+  row.addEventListener('touchend',function(){setTimeout(function(){MQ.hold=false;},1500);},{passive:true});
+  row.addEventListener('scroll',function(){if(!MQ.drag)mqWrap();},{passive:true});
+  row.addEventListener('dragstart',function(e){e.preventDefault();});
+  // mouse drag only; touch keeps native scrolling
+  row.addEventListener('pointerdown',function(e){
+    if(e.pointerType!=='mouse'||e.button!==0)return;
+    MQ.drag={x:e.clientX,left:row.scrollLeft,moved:false,id:e.pointerId};
+  });
+  MQ.last=0;MQ.raf=requestAnimationFrame(mqStep);
+}
+window.addEventListener('pointermove',function(e){
+  var d=MQ.drag,r=MQ.row;if(!d||!r||e.pointerId!==d.id)return;
+  var dx=e.clientX-d.x;
+  if(!d.moved&&Math.abs(dx)>4){d.moved=true;r.classList.add('drag');}
+  if(d.moved){r.scrollLeft=d.left-dx;var h=mqHalf();if(r.scrollLeft>=h){r.scrollLeft-=h;d.left-=h;}else if(r.scrollLeft<=0){r.scrollLeft+=h;d.left+=h;}}
+});
+window.addEventListener('pointerup',function(e){
+  var d=MQ.drag,r=MQ.row;if(!d||e.pointerId!==d.id)return;
+  MQ.drag=null;if(!r)return;r.classList.remove('drag');
+  // a drag is not a click on the hour under the pointer
+  if(d.moved){var stop=function(ev){ev.preventDefault();ev.stopPropagation();};r.addEventListener('click',stop,{capture:true,once:true});setTimeout(function(){r.removeEventListener('click',stop,true);},0);}
+});
 function renderStrip(){
   var el=document.getElementById('strip');
-  if(state==='live'){ el.innerHTML=liveStrip(); }
+  if(state==='live'){ el.innerHTML=liveStrip(); marquee(el.querySelector('.row')); }
   else if(state==='sample'){
     el.innerHTML='<div class="row">'+SAMPLE.hours.map(function(x){return '<a class="hcell" href="#record"><span class="label">Hour '+x[0]+' · sample</span><b>'+x[1]+'</b></a>';}).join('')+'</div>';
   } else if(state==='loading'){ el.innerHTML='<p class="empty">Loading recent hours.</p>';
