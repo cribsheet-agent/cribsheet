@@ -267,14 +267,41 @@ pre.code .p{color:var(--emerald)}
 .status{font-size:.82rem;color:var(--ink-faint);padding:.6rem 1rem;border-top:1px solid var(--line);min-height:2.6rem}
 
 /* lessons */
+.les-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line)}
+.les-board div{padding:1rem 1.3rem;border-left:1px solid var(--line);min-width:0}
+.les-board div:first-child{border-left:0}
+.les-board dt{font:500 .68rem/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.35rem}
+.les-board dd{margin:0;font:500 1rem/1.35 var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.les-board dd small{display:block;font:400 .74rem/1.4 var(--body);color:var(--ink-dim);margin-top:.2rem}
 .lesson-form{padding:1.3rem;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem 1.2rem;border-top:1px solid var(--line)}
 .lesson-form .closed{grid-column:1 / -1;font:500 .7rem var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mint)}
+.lesson-form .closed[data-tone="err"]{color:var(--wrong)}
 .lesson-form label{display:block;font-size:.88rem;margin-bottom:.4rem}
-.lesson-form textarea,.lesson-form select{width:100%;min-height:46px;padding:.7rem;border-radius:10px;border:1px solid var(--line-2);background:var(--ground);color:var(--ink-faint);font:inherit}
+.lesson-form textarea,.lesson-form select{width:100%;min-height:46px;padding:.7rem;border-radius:10px;border:1px solid var(--line-2);background:var(--ground);color:var(--ink);font:inherit}
+.lesson-form textarea:disabled,.lesson-form select:disabled{color:var(--ink-faint)}
 .lesson-form textarea{min-height:88px;resize:vertical}
+.lesson-form textarea[aria-invalid="true"]{border-color:var(--wrong)}
+.lesson-form .count{display:flex;justify-content:space-between;gap:1rem;margin-top:.35rem;font:400 .72rem var(--mono);color:var(--ink-faint)}
+.lesson-form .count b{font-weight:500;color:var(--ink-dim)}
+.lesson-form .count b[data-over]{color:var(--wrong)}
 .lesson-form .full{grid-column:1 / -1}
-.lesson-form .btn{opacity:.55}
-@media (max-width:700px){.lesson-form{grid-template-columns:1fr}}
+.lesson-form .act{display:flex;align-items:flex-end;gap:.7rem;flex-wrap:wrap}
+.lesson-form .btn:disabled{opacity:.55}
+.les-msg{grid-column:1 / -1;margin:0;font-size:.92rem;color:var(--ink-dim);min-height:1.5em;overflow-wrap:anywhere}
+.les-msg[data-tone="err"]{color:var(--wrong)}
+.les-msg[data-tone="ok"]{color:var(--mint)}
+.les-msg code{font:400 .8rem var(--mono)}
+.les-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.les-list li{display:grid;grid-template-columns:4.5rem minmax(0,1fr) 9rem 9rem;gap:.4rem 1rem;align-items:baseline;padding:.85rem 1.3rem;border-top:1px solid var(--line-3)}
+.les-list li:first-child{border-top:0}
+.les-list .id,.les-list .st,.les-list .pr{font:500 .72rem/1.5 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.les-list .st[data-s="kept"]{color:var(--emerald)}
+.les-list .st[data-s="burned"]{color:var(--wrong)}
+.les-list .tx{font-size:.92rem;color:var(--ink);overflow-wrap:anywhere;margin:0}
+.les-list .tx small{display:block;color:var(--ink-faint);font:400 .74rem var(--mono);margin-top:.2rem}
+.les-list .empty{display:block;color:var(--ink-dim);font-size:.92rem}
+@media (max-width:900px){.les-board{grid-template-columns:repeat(2,minmax(0,1fr))}.les-board div:nth-child(odd){border-left:0}.les-board div{border-top:1px solid var(--line-3)}}
+@media (max-width:700px){.lesson-form{grid-template-columns:1fr}.les-list li{grid-template-columns:3.5rem minmax(0,1fr)}.les-list .st,.les-list .pr{grid-column:2}}
 
 /* faq */
 .faq-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:2.5rem}
@@ -567,12 +594,35 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
           <div class="col"><svg class="dots" data-icon="q" viewBox="0 0 90 90" aria-hidden="true"></svg><span class="label">03 · test</span><h3>Three hours on target</h3><p>A copy of Crowd reads it. Each hour adds at least three questions of that kind.</p></div>
           <div class="col em-col"><svg class="dots" data-icon="check" viewBox="0 0 90 90" aria-hidden="true"></svg><span class="label">04 · verdict</span><h3>Kept or ostracized</h3><p>More right on target and no fewer elsewhere: stake back plus reward. Otherwise the stake burns.</p></div>
         </div>
-        <form class="lesson-form" onsubmit="return false" aria-describedby="les-closed">
-          <span class="closed" id="les-closed">Planned, not open yet</span>
-          <div class="full"><label for="les-text">Your lesson (280 bytes max)</label><textarea id="les-text" disabled placeholder="Write one checkable fact or procedure"></textarea></div>
-          <div><label for="les-kind">Question kind it helps with</label><select id="les-kind" disabled><option>Choose a question kind</option></select></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn btn-em" type="submit" disabled>Stake and submit</button></div>
+        <dl class="les-board" id="les-board" aria-label="Lesson board">
+          <div><dt>Contract</dt><dd id="lb-contract">Not deployed</dd></div>
+          <div><dt>Stake</dt><dd id="lb-stake">Not set</dd></div>
+          <div><dt>Reward if kept</dt><dd id="lb-reward">Not set</dd></div>
+          <div><dt>Reward pool</dt><dd id="lb-pool">Not funded</dd></div>
+          <div><dt>Active</dt><dd id="lb-active">0 of 12</dd></div>
+        </dl>
+        <form class="lesson-form" id="les-form" novalidate aria-describedby="les-closed">
+          <span class="closed" id="les-closed">Reading the lesson board</span>
+          <div class="full">
+            <label for="les-text">Your lesson (280 bytes max)</label>
+            <textarea id="les-text" disabled placeholder="Write one checkable fact or procedure" aria-describedby="les-count"></textarea>
+            <div class="count" id="les-count"><span>Plain text, line breaks allowed</span><b id="les-bytes">0 / 280 bytes</b></div>
+          </div>
+          <div><label for="les-kind">Question kind it helps with</label><select id="les-kind" disabled>
+            <option value="">Choose a question kind</option>
+            <option value="0">Bonding curve of a token</option>
+            <option value="1">Deployer of a token</option>
+            <option value="2">Launch block of a token</option>
+            <option value="3">Creator tax in basis points</option>
+            <option value="4">Graduated, yes or no</option>
+            <option value="5">Launches in the hour</option>
+            <option value="6">Deployer's launches, last 24 hours</option>
+            <option value="7">Deployer's launches, last 7 days</option>
+          </select></div>
+          <div class="act"><button class="btn btn-em" type="submit" id="les-go" disabled>Connect wallet</button></div>
+          <p class="les-msg" id="les-msg" role="status" aria-live="polite"></p>
         </form>
+        <ol class="les-list" id="les-list" aria-label="Lessons"><li><span class="empty">No lesson has been staked yet.</span></li></ol>
       </div>
     </div>
   </section>
@@ -1078,6 +1128,163 @@ if('IntersectionObserver' in window){new IntersectionObserver(function(en){visib
   document.addEventListener('crib:record',function(){lastKey='';paint();});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
   poll();
+})();
+</script>
+<script>
+/* ---------- lessons: board from /data/lessons/index.json, stake through the visitor's wallet ---------- */
+(function(){
+  var KINDS=["Bonding curve","Deployer","Launch block","Creator tax","Graduated","Launches in the hour","Deployer, 24 hours","Deployer, 7 days"];
+  var KEYS=["curve","creator","launch_block","creator_tax","graduated","hour_launch_count","creator_24h","creator_7d"];
+  var CHAIN='0x1237', MAX=280; // Robinhood Chain, 4663
+  var $=function(id){return document.getElementById(id);};
+  var form=$('les-form'), text=$('les-text'), kind=$('les-kind'), go=$('les-go'), msg=$('les-msg'), closed=$('les-closed'), bytesEl=$('les-bytes'), list=$('les-list');
+  var board=null, account=null, busy=false, enc=new TextEncoder();
+
+  function say(t,tone){msg.innerHTML=t;if(tone)msg.dataset.tone=tone;else delete msg.dataset.tone;}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function tokens(wei){ // 18 decimals, whole tokens with thousands separators, up to 2 decimals
+    var b=BigInt(wei), w=b/10n**18n, f=Number((b%10n**18n)/10n**16n);
+    return w.toLocaleString('en-US')+(f?'.'+String(f).padStart(2,'0').replace(/0$/,''):'');
+  }
+  function short(a){return a.slice(0,6)+'…'+a.slice(-4);}
+  function pad(h){return h.replace(/^0x/,'').padStart(64,'0');}
+  function hex(n){return '0x'+BigInt(n).toString(16);}
+
+  function setClosed(t,tone){closed.textContent=t;if(tone)closed.dataset.tone=tone;else delete closed.dataset.tone;}
+  function lock(on){text.disabled=on;kind.disabled=on;}
+
+  // ---- the board
+  function paintBoard(b){
+    $('lb-contract').innerHTML='<a href="https://repo.sourcify.dev/4663/'+esc(b.contract)+'" rel="noopener">'+esc(short(b.contract))+'</a>';
+    $('lb-stake').innerHTML=esc(tokens(b.stake))+'<small>$CRIBSHEET per lesson</small>';
+    $('lb-reward').innerHTML=esc(tokens(b.reward))+'<small>'+(b.reward_bps/100)+'% of the stake, plus the stake back</small>';
+    $('lb-pool').innerHTML=esc(tokens(b.pool))+'<small>free to back new rewards</small>';
+    $('lb-active').textContent=b.active+' of '+b.max_active;
+    var ls=b.lessons||[];
+    if(!ls.length){list.innerHTML='<li><span class="empty">No lesson has been staked yet.</span></li>';return;}
+    list.innerHTML=ls.slice().reverse().map(function(l){
+      var r=l.rounds&&l.rounds.length?l.rounds[l.rounds.length-1]:null, pr='', st=l.status;
+      if(st==='testing'){pr=r&&!r.verdict?'Hour '+r.hours.length+' of 3':r&&r.verdict?'Verdict in, settling':'Waiting for its first hour';}
+      else if(r&&r.verdict){pr='<a href="/data/'+esc(r.verdict.file)+'">Verdict</a>';}
+      var label={testing:'Testing',kept:'Kept',burned:'Burned',retired:'Retired',reclaimed:'Reclaimed'}[st]||st;
+      return '<li><span class="id">#'+l.id+'</span><p class="tx">'+esc(l.text)+'<small>'+esc(KINDS[KEYS.indexOf(l.kind)]||l.kind)+' · '+esc(short(l.author))+'</small></p><span class="st" data-s="'+esc(st)+'">'+label+'</span><span class="pr">'+pr+'</span></li>';
+    }).join('');
+  }
+  function load(){
+    fetch('/data/lessons/index.json',{cache:'no-store'}).then(function(r){
+      if(r.status===404)return null;
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(b){
+      if(!b||b.fixture||!b.contract){board=null;lock(true);go.disabled=true;setClosed('Planned, not open yet');say('Opens when the CribsheetLessons contract is deployed and its stake and reward are announced.');return;}
+      board=b;paintBoard(b);
+      lock(false);setClosed('Open · tested from the next exam hour');
+      refresh();
+    }).catch(function(e){
+      lock(true);go.disabled=true;setClosed('Could not read the lesson board','err');
+      say('Try again in a minute. Raw: <a href="/data/lessons/index.json">/data/lessons/index.json</a> ('+esc(e.message)+')','err');
+    });
+  }
+
+  // ---- the lesson text
+  function check(){
+    var t=text.value, n=enc.encode(t).length, bad=/[\u0000-\u0009\u000b-\u001f\u007f]/.test(t);
+    bytesEl.textContent=n+' / '+MAX+' bytes';
+    if(n>MAX)bytesEl.dataset.over='';else delete bytesEl.dataset.over;
+    text.setAttribute('aria-invalid',n>MAX||bad?'true':'false');
+    if(!t.trim())return 'Write the lesson first.';
+    if(n>MAX)return 'The lesson is '+n+' bytes; the contract takes 280 at most.';
+    if(bad)return 'Tabs and other control characters are not accepted; line breaks are.';
+    if(kind.value==='')return 'Choose the question kind it should help with.';
+    return null;
+  }
+  text.addEventListener('input',function(){check();if(msg.dataset.tone==='err')say('');});
+
+  // ---- wallet
+  var eth=function(){return window.ethereum;};
+  function req(method,params){return eth().request({method:method,params:params||[]});}
+  function call(to,data){return req('eth_call',[{to:to,data:data},'latest']);}
+  function wait(tx){
+    return new Promise(function(ok,no){
+      var tries=0;(function poll(){
+        req('eth_getTransactionReceipt',[tx]).then(function(r){
+          if(r){return r.status==='0x1'?ok(r):no(new Error('the transaction reverted'));}
+          if(++tries>120)return no(new Error('no receipt after 4 minutes; check the wallet'));
+          setTimeout(poll,2000);
+        }).catch(no);
+      })();
+    });
+  }
+  function onChain(){
+    return req('eth_chainId').then(function(id){
+      if(id===CHAIN)return;
+      return req('wallet_switchEthereumChain',[{chainId:CHAIN}]).catch(function(e){
+        if(e&&e.code===4902)return req('wallet_addEthereumChain',[{chainId:CHAIN,chainName:'Robinhood Chain',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://rpc.mainnet.chain.robinhood.com']}]);
+        throw e;
+      });
+    });
+  }
+  function state(){ // balance and allowance of the connected account
+    var a=pad(account);
+    return Promise.all([call(board.token,'0x70a08231'+a),call(board.token,'0xdd62ed3e'+a+pad(board.contract))]).then(function(r){return {bal:BigInt(r[0]),allow:BigInt(r[1])};});
+  }
+  function refresh(){
+    if(!board)return;
+    if(!account){go.textContent='Connect wallet';go.disabled=false;return;}
+    var stake=BigInt(board.stake), reward=BigInt(board.reward);
+    if(board.active>=board.max_active){go.disabled=true;go.textContent='Stake and submit';say('Twelve lessons are active. A slot opens when one is burned or retired.');return;}
+    if(BigInt(board.pool)<reward){go.disabled=true;go.textContent='Stake and submit';say('The reward pool cannot back another reward yet. New lessons open when it is funded.');return;}
+    go.disabled=true;
+    state().then(function(s){
+      if(s.bal<stake){go.textContent='Stake and submit';say('Connected '+esc(short(account))+'. It holds '+esc(tokens(s.bal))+' $CRIBSHEET; a lesson needs '+esc(tokens(stake))+'.');return;}
+      go.disabled=false;
+      go.textContent=s.allow<stake?'Approve '+tokens(stake)+' $CRIBSHEET':'Stake and submit';
+      say('Connected '+esc(short(account))+'. '+(s.allow<stake?'First approve the stake, then submit. Two wallet prompts.':'Stake approved. Submitting sends '+esc(tokens(stake))+' $CRIBSHEET to the contract.'));
+    }).catch(function(e){say('Could not read the balance: '+esc(e.message||e),'err');});
+  }
+  function encodeSubmit(t,k){
+    var b=enc.encode(t), h=Array.from(b,function(x){return x.toString(16).padStart(2,'0');}).join('');
+    var padded=h.padEnd(Math.ceil(h.length/64)*64,'0');
+    return '0x816ff67c'+pad('40')+pad(k.toString(16))+pad(b.length.toString(16))+padded;
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(busy||!board)return;
+    if(!eth()){say('No wallet found in this browser. Open this page in a browser with an Ethereum wallet that can add Robinhood Chain.','err');return;}
+    var stake=BigInt(board.stake);
+    busy=true;go.disabled=true;
+    var step=!account?'connect':go.textContent.indexOf('Approve')===0?'approve':'submit';
+    var p;
+    if(step==='connect'){
+      say('Waiting for the wallet');
+      p=req('eth_requestAccounts').then(function(a){account=a[0].toLowerCase();return onChain();});
+    } else if(step==='approve'){
+      say('Confirm the approval in the wallet');
+      p=onChain().then(function(){return req('eth_sendTransaction',[{from:account,to:board.token,data:'0x095ea7b3'+pad(board.contract)+pad(stake.toString(16))}]);})
+        .then(function(tx){say('Approval sent: <code>'+esc(short(tx))+'</code>. Waiting for the block');return wait(tx);});
+    } else {
+      var err=check();
+      if(err){busy=false;go.disabled=false;say(err,'err');(err.indexOf('kind')>=0?kind:text).focus();return;}
+      var t=text.value, k=Number(kind.value);
+      say('Confirm the stake in the wallet');
+      p=onChain().then(function(){return req('eth_sendTransaction',[{from:account,to:board.contract,data:encodeSubmit(t,k)}]);})
+        .then(function(tx){say('Stake sent: <code>'+esc(short(tx))+'</code>. Waiting for the block');return wait(tx).then(function(r){return {r:r,tx:tx};});})
+        .then(function(o){
+          var log=(o.r.logs||[]).find(function(l){return l.address.toLowerCase()===board.contract&&l.topics[0]==='0xc4498ee5f53822227ab46e7103bcd92e79ce1c2510e3f1712a534b67720cb5d9';});
+          var id=log?Number(BigInt(log.topics[1])):null;
+          text.value='';kind.value='';check();
+          say((id!==null?'Lesson #'+id+' is staked. ':'Lesson staked. ')+'Its test starts at the next exam hour and the verdict comes after three tested hours. Tx <code>'+esc(o.tx)+'</code>','ok');
+          board.active++;
+        });
+    }
+    // the board on this page refreshes with the next exam hour; the success line stays until then
+    p.then(function(){busy=false;if(step!=='submit')refresh();else{go.disabled=false;go.textContent='Stake and submit';}})
+     .catch(function(e){busy=false;go.disabled=false;
+       var m=e&&e.code===4001?'Cancelled in the wallet.':(e&&(e.shortMessage||e.message))||String(e);
+       say(esc(m),'err');});
+  });
+  if(eth()&&eth().on){eth().on('accountsChanged',function(a){account=a&&a[0]?a[0].toLowerCase():null;refresh();});}
+  check();load();
 })();
 </script>
 </body>

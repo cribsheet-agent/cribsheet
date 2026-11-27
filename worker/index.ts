@@ -8,7 +8,9 @@ import { ARMS, type Arm } from '../arms/blocks.ts';
 import type { Attempt } from '../arms/agent.ts';
 import { sealOnChain } from '../runner/seal-chain.ts';
 import { setRpcUrl } from '../lib/rpc.ts';
-import { answer, finish, prepare, readState, recordMissed, type Prepared, type Store } from '../runner/hour.ts';
+import { answer, answerLesson, finish, lessonQuestionCount, prepare, readState, recordLessons, recordMissed, type LessonsSource, type Prepared, type Store } from '../runner/hour.ts';
+import { chainSettler, readBoard } from '../runner/lessons-chain.ts';
+import { settlePending, type Board } from '../runner/lessons.ts';
 import { composeLive, liveAnswered, liveStart, livePhase } from '../runner/live.ts';
 
 export interface Env {
@@ -23,6 +25,28 @@ export interface Env {
   SEAL_KEY?: string;
   /** Secret: a Robinhood Chain RPC endpoint that serves eth_getLogs to Workers (the public one does not). */
   RPC_URL?: string;
+  /** CribsheetLessons address; without it no lesson is read or tested. */
+  LESSONS_ADDRESS?: string;
+  /** Secret: private key of the contract's judge; without it verdicts stay pending. */
+  JUDGE_KEY?: string;
+  /** Lessons tested per hour (default 2). */
+  LESSON_SLOTS?: string;
+  /** "staging": lessons may come from test data in the bucket (_internal/lessons-fixture.json). */
+  ENVIRONMENT?: string;
+}
+
+const FIXTURE = '_internal/lessons-fixture.json';
+
+function lessonsSource(env: Env): LessonsSource | undefined {
+  const slots = Number(env.LESSON_SLOTS ?? 2);
+  if (env.LESSONS_ADDRESS) return { slots, load: () => readBoard(env.LESSONS_ADDRESS as `0x${string}`) };
+  // test data is honoured only in staging, never next to a real contract
+  if (env.ENVIRONMENT === 'staging') return { slots, load: async () => {
+    const t = await (await env.DATA.get(FIXTURE))?.text();
+    if (!t) throw new Error('no lesson test data');
+    return { ...JSON.parse(t) as Board, fixture: true };
+  } };
+  return undefined;
 }
 
 const r2Store = (bucket: R2Bucket): Store => ({
@@ -64,13 +88,28 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
     if (!claim.ok) return { skipped: claim.reason };
 
     try {
+      const lessons = lessonsSource(this.env);
       const p: Prepared = await step.do('prepare', { retries: { limit: 3, delay: '30 seconds', backoff: 'exponential' }, timeout: '10 minutes' },
-        () => prepare(store, firedAt));
+        () => prepare(store, firedAt, () => {}, lessons));
       await step.do('live answering', () => livePhase(store, p.hour, 'answering', { questions: p.questions.length }));
 
       // arms in parallel, questions in order within an arm, one step per answer
       const attempts = {} as Record<Arm, Attempt[]>;
-      await Promise.all(ARMS.map(async arm => {
+      // lesson tests run beside the arms: a copy of Crowd and the extra questions for Crowd
+      const copy: Record<number, Attempt[]> = {}, crowdExtra: Record<number, Attempt[]> = {};
+      // a failed lesson answer never fails the hour: that lesson's hour is skipped instead
+      const lessonSides = Promise.all(p.tests.flatMap(t => (['copy', 'crowd'] as const).map(async side => {
+        const out: Attempt[] = [];
+        try {
+          for (let i = 0; i < lessonQuestionCount(p, t, side); i++) {
+            const a = await step.do(`lesson ${t.id} ${side} ${i + 1}`, { retries: { limit: 3, delay: '20 seconds', backoff: 'exponential' }, timeout: '10 minutes' },
+              async () => JSON.stringify(await answerLesson(cfg, p, t, side, i)));
+            out.push(JSON.parse(a) as Attempt);
+          }
+          (side === 'copy' ? copy : crowdExtra)[t.id] = out;
+        } catch { /* left out of copy/crowdExtra, recorded as skipped */ }
+      })));
+      await Promise.all([lessonSides, ...ARMS.map(async arm => {
         attempts[arm] = [];
         for (let i = 0; i < p.questions.length; i++) {
           // tool arguments are free-form JSON, so the step returns the attempt as a string
@@ -82,13 +121,20 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
             });
           attempts[arm].push(JSON.parse(a) as Attempt);
         }
-      }));
+      })]);
 
       await step.do('live grading', () => livePhase(store, p.hour, 'grading'));
       const done = await step.do('finish', { retries: { limit: 3, delay: '30 seconds', backoff: 'exponential' }, timeout: '10 minutes' }, async () => {
         const { result, root } = await finish(store, cfg, p, attempts);
         return { hour: result.hour, score: result.score, usd: result.cost.usd, root };
       });
+      // lesson records never fail a graded hour
+      if (p.tests.length) {
+        try {
+          await step.do('lessons record', { retries: { limit: 3, delay: '30 seconds', backoff: 'exponential' }, timeout: '5 minutes' },
+            () => recordLessons(store, p, attempts.crowd, copy, crowdExtra));
+        } catch { /* the hour's lesson files are missing; the round waits for the next hour */ }
+      }
       const { SEALS_ADDRESS, SEAL_KEY } = this.env;
       let sealTx: string | undefined;
       if (SEALS_ADDRESS && SEAL_KEY) {
@@ -102,6 +148,13 @@ export class ExamHour extends WorkflowEntrypoint<Env, Params> {
         } catch (e) {
           await step.do('seal failed', () => store.put(`seal/${done.hour}.tx.json`, JSON.stringify({ hour: done.hour, root: done.root, error: (e as Error).message.slice(0, 300) }, null, 2)));
         }
+      }
+      if (lessons) {
+        const { LESSONS_ADDRESS, JUDGE_KEY } = this.env;
+        try {
+          await step.do('lessons settle', { retries: { limit: 3, delay: '1 minute', backoff: 'exponential' }, timeout: '10 minutes' }, async () =>
+            JSON.stringify(await settlePending(store, LESSONS_ADDRESS && JUDGE_KEY ? chainSettler(LESSONS_ADDRESS as `0x${string}`, JUDGE_KEY as `0x${string}`) : null)));
+        } catch { /* pending verdicts are tried again next hour */ }
       }
       await step.do('live graded', () => livePhase(store, done.hour, 'graded', { score: done.score, ...(sealTx ? { seal_tx: sealTx } : {}) }));
       return done;
@@ -145,6 +198,6 @@ async function data(path: string, req: Request, env: Env): Promise<Response> {
   headers.set('content-type', obj.httpMetadata?.contentType ?? contentType(path));
   headers.set('etag', obj.httpEtag);
   // files of a finished hour never change; results.jsonl and state.json change every hour
-  headers.set('cache-control', /^(results\.jsonl|state\.json)$/.test(path) ? 'public, max-age=60' : 'public, max-age=300');
+  headers.set('cache-control', /^(results\.jsonl|state\.json|lessons\/index\.json)$/.test(path) ? 'public, max-age=60' : 'public, max-age=300');
   return new Response(req.method === 'HEAD' ? null : obj.body, { headers });
 }
