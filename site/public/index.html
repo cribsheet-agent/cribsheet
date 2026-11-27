@@ -328,7 +328,7 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 .live .gut{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:1.2rem 2.5rem;align-items:center;padding-block:1.4rem}
 .live-k{display:flex;align-items:center;gap:.55rem;margin-bottom:.45rem}
 .live-k i{width:8px;height:8px;border-radius:50%;background:var(--ink-faint)}
-.live[data-on="1"] .live-k i{background:var(--emerald);box-shadow:0 0 0 0 #3bdc9299;animation:beat 1.6s var(--ease) infinite}
+.live[data-on="1"] .live-k i,.live[data-on="2"] .live-k i{background:var(--emerald);box-shadow:0 0 0 0 #3bdc9299;animation:beat 1.6s var(--ease) infinite}
 @keyframes beat{0%{box-shadow:0 0 0 0 #3bdc9280}70%{box-shadow:0 0 0 10px #3bdc9200}100%{box-shadow:0 0 0 0 #3bdc9200}}
 .live h2{font:650 clamp(1.25rem,1rem + .9vw,1.7rem)/1.15 var(--display);letter-spacing:-.02em}
 .live h2 .t{font-family:var(--mono);font-weight:500;color:var(--emerald)}
@@ -349,6 +349,20 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
 .lane:not(.em) .shards i.on{background:var(--silver)}
 .shards i.cur{background:#3bdc9259;animation:think 1.2s ease-in-out infinite}
 @keyframes think{50%{background:#3bdc92b3}}
+/* progress: the hour window being collected, or the run in progress */
+.lp{margin-top:.9rem;max-width:34rem}
+.lp .l{display:flex;justify-content:space-between;gap:1rem;font:500 .66rem/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.45rem}
+.lp .l b{font-weight:500;color:var(--emerald)}
+.lp .bar{position:relative;height:5px;border-radius:3px;background:var(--line-2);overflow:hidden}
+.lp .bar i{position:absolute;inset:0 auto 0 0;background:var(--emerald);border-radius:3px;transition:width 1s linear}
+.lp .bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,#ffffff59,transparent);transform:translateX(-100%);animation:slide 2.4s linear infinite}
+.lanes .cap{font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);display:flex;justify-content:space-between;gap:1rem}
+.lanes .cap a{white-space:nowrap;color:var(--emerald)}
+.shards i.ok{background:var(--emerald)}
+.lane:not(.em) .shards i.ok{background:var(--silver)}
+.shards i.no{background:#e8907b2e}
+.live[data-mode="rest"] .shards i.ok{animation:glint 3.2s ease-in-out infinite;animation-delay:var(--d,0s)}
+@keyframes glint{0%,100%{opacity:1}45%{opacity:.35}}
 .live-f{grid-column:1/-1;margin:0;color:var(--ink-faint);font-size:.78rem}
 .live-f a{color:var(--emerald)}
 @media (max-width:860px){.live .gut{grid-template-columns:1fr}.lane{grid-template-columns:4.6rem minmax(0,1fr) 2.8rem;gap:.6rem}}
@@ -418,9 +432,10 @@ dialog.about::backdrop{background:#020604cc;backdrop-filter:blur(4px);-webkit-ba
         <h2 id="live-h">Reading the exam status</h2>
         <p class="sub" id="live-sub" aria-live="polite"></p>
         <ol class="steps" id="live-steps" aria-label="Phases of an exam hour"></ol>
+        <div class="lp" id="live-p"></div>
       </div>
       <div class="lanes" id="live-lanes"></div>
-      <p class="live-f">Progress only while an hour runs: answers and scores appear after grading. Raw: <a href="/data/live.json">/data/live.json</a></p>
+      <p class="live-f">The exam runs at minute 1 of every UTC hour, all day. While an hour runs, only progress shows; answers and scores appear after grading. Raw: <a href="/data/live.json">/data/live.json</a></p>
     </div>
   </section>
 
@@ -695,8 +710,19 @@ function loadLive(){
     LIVE=t.split('\n').filter(Boolean).map(function(l){return JSON.parse(l);});
     if(!graded().length){setState('empty');return;}
     curHour=graded()[graded().length-1].hour; setState('live');
+    document.dispatchEvent(new Event('crib:record'));
   }).catch(function(){setState('error');});
 }
+window.cribRecord={
+  last:function(){var g=graded();return g.length?g[g.length-1]:null;},
+  reload:function(){
+    return fetch('/data/results.jsonl',{cache:'no-store'}).then(function(r){return r.ok?r.text():Promise.reject();}).then(function(t){
+      LIVE=t.split('\n').filter(Boolean).map(function(l){return JSON.parse(l);});
+      if(graded().length){curHour=graded()[graded().length-1].hour;setState('live');}
+      document.dispatchEvent(new Event('crib:record'));
+    });
+  }
+};
 function liveScorecard(){
   var g=graded(), r=g[g.length-1], s=sc(r), L=lead(s), n=r.questions.length;
   var h='<div class="card-h">Hour '+r.hour+' scorecard · graded</div>';
@@ -948,25 +974,52 @@ if('IntersectionObserver' in window){new IntersectionObserver(function(en){visib
   var NAMES=["Blank","Manual","Self","Crowd"], KEYS=["blank","manual","self","crowd"];
   var STEPS=[["prepare","Questions"],["answering","Answering"],["grading","Grading"],["sealing","Sealing"],["graded","Graded"]];
   var root=document.getElementById('live'), H=document.getElementById('live-h'), SUB=document.getElementById('live-sub'),
-      K=document.getElementById('live-k'), ST=document.getElementById('live-steps'), LN=document.getElementById('live-lanes');
-  var view=null, skew=0, lastPhase=null, timer=null;
+      K=document.getElementById('live-k'), ST=document.getElementById('live-steps'), LN=document.getElementById('live-lanes'), P=document.getElementById('live-p');
+  var view=null, skew=0, lastPhase=null, timer=null, lastKey='';
   function put(el,h){if(el.innerHTML!==h)el.innerHTML=h;}
   function nowMs(){return Date.now()+skew;}
   function nextFire(t){var d=new Date(t);d.setUTCMinutes(1,0,0);if(d.getTime()<=t)d.setUTCHours(d.getUTCHours()+1);return d.getTime();}
   function mmss(ms){ms=Math.max(0,ms);var m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000);return m+':'+(s<10?'0':'')+s;}
   function ago(ms){var m=Math.round(ms/60000);return m<1?'just now':m===1?'1 minute ago':m+' minutes ago';}
-  function utc(t){var d=new Date(t);return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC';}
+  function hm(d){return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}
+  function utc(t){return hm(new Date(t))+' UTC';}
   function running(v){return v&&['prepare','answering','grading','sealing'].indexOf(v.phase)>=0&&!v.stale;}
+  function last(){return window.cribRecord&&window.cribRecord.last();}
+  // the hour the next exam asks about: the UTC hour that is open right now
+  function nextHourNo(v){var r=last();var h=r?r.hour:-1;if(v&&typeof v.hour==='number')h=Math.max(h,v.hour);return h+1;}
+  function bar(label,right,pct){
+    put(P,'<div class="l"><span>'+label+'</span><b>'+right+'</b></div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(pct)+'"><i style="width:'+pct.toFixed(1)+'%"></i></div>');
+  }
+  function runPct(v){
+    var n=(v.questions||8)*4, got=KEYS.reduce(function(s,k){return s+((v.answered&&v.answered[k])||0);},0);
+    return {prepare:4,answering:8+80*got/n,grading:90,sealing:96}[v.phase]||0;
+  }
+  // lanes: the run in progress (answered so far, the next one blinking), or the last graded hour, question by question
   function lanes(v){
-    var n=(v&&v.questions)||8, run=running(v), done=v&&v.phase==='graded';
-    LN.innerHTML=NAMES.map(function(a,i){
-      var k=KEYS[i], got=v&&v.answered?(v.answered[k]||0):0, cells='';
-      var lit=done&&v.score?v.score[k]:got;
-      for(var q=0;q<n;q++){cells+='<i class="'+(q<lit?'on':(run&&v.phase==='answering'&&q===got?'cur':''))+'"></i>';}
-      var c=done&&v.score?v.score[k]+'/'+n:(run?got+'/'+n:'&ndash;');
-      var lbl=done&&v.score?a+': '+v.score[k]+' of '+n+' right':run?a+': '+got+' of '+n+' answered':a+': waiting';
-      return '<div class="lane'+(i>=2?' em':'')+'" role="img" aria-label="'+lbl+'"><span class="n">'+a+'</span><span class="shards">'+cells+'</span><span class="c">'+c+'</span></div>';
-    }).join('');
+    var run=running(v), mode=run?'run':'rest', r=run?null:last();
+    var key=mode+':'+(run?v.hour+':'+v.phase+':'+JSON.stringify(v.answered):(r?r.hour:'-'));
+    if(key===lastKey)return;lastKey=key;
+    var cap='';
+    if(run){
+      var n=v.questions||8;
+      LN.innerHTML=NAMES.map(function(a,i){
+        var k=KEYS[i], got=(v.answered&&v.answered[k])||0, cells='';
+        for(var q=0;q<n;q++)cells+='<i class="'+(q<got?'on':(v.phase==='answering'&&q===got?'cur':''))+'"></i>';
+        return '<div class="lane'+(i>=2?' em':'')+'" role="img" aria-label="'+a+': '+got+' of '+n+' answered"><span class="n">'+a+'</span><span class="shards">'+cells+'</span><span class="c">'+got+'/'+n+'</span></div>';
+      }).join('');
+      cap='<div class="cap"><span>Hour '+v.hour+' · answers in</span><span>scores after grading</span></div>';
+    } else if(r){
+      var qs=r.questions.filter(function(q){return q.official!==false;}), n2=qs.length;
+      LN.innerHTML=NAMES.map(function(a,i){
+        var k=KEYS[i], right=0, cells='';
+        qs.forEach(function(q,j){var ok=q.answers&&q.answers[k]&&q.answers[k].correct;if(ok)right++;cells+='<i class="'+(ok?'ok':'no')+'" style="--d:'+(j*0.18+i*0.07).toFixed(2)+'s"></i>';});
+        return '<div class="lane'+(i>=2?' em':'')+'" role="img" aria-label="'+a+': '+right+' of '+n2+' right in hour '+r.hour+'"><span class="n">'+a+'</span><span class="shards">'+cells+'</span><span class="c">'+right+'/'+n2+'</span></div>';
+      }).join('');
+      cap='<div class="cap"><span>Hour '+r.hour+' · right per question</span><a href="#record">Open</a></div>';
+    } else {
+      LN.innerHTML=NAMES.map(function(a,i){var c='';for(var q=0;q<8;q++)c+='<i></i>';return '<div class="lane'+(i>=2?' em':'')+'"><span class="n">'+a+'</span><span class="shards">'+c+'</span><span class="c">&ndash;</span></div>';}).join('');
+    }
+    LN.insertAdjacentHTML('afterbegin',cap);
   }
   function steps(v){
     var at=-1;STEPS.forEach(function(s,i){if(v&&v.phase===s[0])at=i;});
@@ -974,51 +1027,55 @@ if('IntersectionObserver' in window){new IntersectionObserver(function(en){visib
     ST.hidden=!running(v);
   }
   function nextLine(){var nf=nextFire(nowMs());return 'Next exam starts at '+utc(nf)+', in <span class="t">'+mmss(nf-nowMs())+'</span>';}
+  function windowBar(v){
+    // the hour that is open now is the one the next exam asks about
+    var t=nowMs(), d=new Date(t); d.setUTCMinutes(0,0,0);
+    var pct=(t-d.getTime())/36e3, e=new Date(d.getTime()+36e5);
+    bar('Collecting hour '+nextHourNo(v)+' · Pons launches '+hm(d)+'–'+hm(e)+' UTC',Math.floor(pct)+'%',pct);
+  }
   function paint(){
-    var v=view;
-    root.dataset.on=running(v)?'1':'0';
-    if(!v){put(K,'Exam status');put(H,'Exam status could not load');put(SUB,'The raw record stays public at /data/results.jsonl.');lanes(null);steps(null);return;}
-    if(running(v)){
+    var v=view, run=running(v);
+    root.dataset.on=v?(run?'1':'2'):'0';
+    root.dataset.mode=run?'run':'rest';
+    if(!v){put(K,'Exam status');put(H,'Exam status could not load');put(SUB,'The raw record stays public at /data/results.jsonl.');put(P,'');lanes(null);steps(null);return;}
+    var r=last();
+    if(run){
       var total=(v.questions||8)*4, got=KEYS.reduce(function(s,k){return s+((v.answered&&v.answered[k])||0);},0);
-      put(K,'Live · hour '+v.hour);
+      put(K,'Live · hour '+v.hour+' running');
       var t={prepare:'Hour '+v.hour+': reading the chain, writing questions',answering:'Hour '+v.hour+': four agents answering',grading:'Hour '+v.hour+': grading against the chain',sealing:'Hour '+v.hour+': sealing the result on chain'}[v.phase];
       put(H,t);
       put(SUB,(v.phase==='answering'?got+' of '+total+' answers in. ':'')+'Started '+ago(nowMs()-v.started)+'.');
-    } else if(v.phase==='graded'){
-      put(K,'Hour '+v.hour+' graded');
-      put(H,nextLine());
-      put(SUB,'Hour '+v.hour+' was graded '+ago(nowMs()-v.since)+(v.seal_tx?' and sealed on chain.':'.')+' <a href="#record">See its questions and keys</a>.');
-    } else if(v.phase==='missed'){
-      put(K,'Hour '+v.hour+' missed');
-      put(H,nextLine());
-      put(SUB,'Hour '+v.hour+' did not finish. It is recorded as missed in results.jsonl, never deleted.');
+      bar('Hour '+v.hour+' · '+({prepare:'questions',answering:'answering',grading:'grading',sealing:'sealing'}[v.phase]),Math.floor(runPct(v))+'%',runPct(v));
     } else if(v.stale){
-      put(K,'Hour '+v.hour+' is late');
+      put(K,'Live · hour '+v.hour+' is late');
       put(H,'Hour '+v.hour+' is taking longer than usual');
       put(SUB,'Started '+ago(nowMs()-v.started)+'. If it does not finish it is recorded as missed.');
+      windowBar(v);
     } else {
-      put(K,'Exam status');put(H,nextLine());put(SUB,'');
+      put(K,'Live · every hour');
+      put(H,nextLine());
+      var g=v.phase==='graded'?v:null;
+      if(v.phase==='missed')put(SUB,'Hour '+v.hour+' did not finish. It is recorded as missed in results.jsonl, never deleted.');
+      else if(g)put(SUB,'Hour '+g.hour+' was graded '+ago(nowMs()-g.since)+(g.seal_tx?' and sealed on chain.':'.')+' <a href="#record">See its questions and keys</a>.');
+      else if(r)put(SUB,'Hour '+r.hour+' is graded. <a href="#record">See its questions and keys</a>.');
+      else put(SUB,'');
+      windowBar(v);
     }
     lanes(v);steps(v);
-  }
-  function refreshRecord(){
-    fetch('/data/results.jsonl',{cache:'no-store'}).then(function(r){return r.ok?r.text():Promise.reject();}).then(function(t){
-      LIVE=t.split('\n').filter(Boolean).map(function(l){return JSON.parse(l);});
-      if(graded().length){curHour=graded()[graded().length-1].hour;setState('live');}
-    }).catch(function(){});
   }
   function poll(){
     clearTimeout(timer);
     fetch('/data/live.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(v){
       skew=v.now-Date.now();
-      if(lastPhase&&lastPhase!=='graded'&&lastPhase!=='idle'&&v.phase==='graded')refreshRecord();
+      if(lastPhase&&lastPhase!=='graded'&&lastPhase!=='idle'&&v.phase==='graded'&&window.cribRecord)window.cribRecord.reload().catch(function(){});
       lastPhase=v.phase;view=v;paint();
     }).catch(function(){view=null;paint();}).then(function(){
       var wait=running(view)?6000:Math.min(30000,Math.max(3000,nextFire(nowMs())-nowMs()+4000));
       timer=setTimeout(poll,document.hidden?60000:wait);
     });
   }
-  setInterval(function(){if(view&&!running(view))paint();},1000);
+  setInterval(function(){if(view)paint();},1000);
+  document.addEventListener('crib:record',function(){lastKey='';paint();});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
   poll();
 })();
