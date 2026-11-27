@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Lessons are open (27 November 2026, 20:30 UTC): the judge key is set as a Worker secret and the reward pool holds 1,150,000 $CRIBSHEET (two rewards). Each submission reserves its reward, so at most two lessons test at once until the pool is refilled.
 - `CribsheetLessons` deployed on Robinhood Chain at `0xedfca790630e6e674fb7156244b80b0a67195b80` (27 November 2026, block 124,487,397), verified on Sourcify (exact match). Stake 1,150,000 $CRIBSHEET, reward 575,000. The Worker reads lessons from it; the site opens the form once the reward pool can back a reward.
 - Lessons (F2), built and tested, not deployed: `CribsheetLessons` contract and Foundry tests (stake and reward rate fixed at deployment, reward reserved per submission, settle window from 3 hours to 7 days, author reclaim after that, no owner, no upgrade). The runner tests up to two lessons an hour on a copy of Crowd with extra questions outside the official score, writes `/data/lessons/`, and settles verdicts with a judge key. The home page's lesson form becomes a wallet flow that opens only when the contract is live, with a board row (contract, stake, reward, pool, active).
 - Hours are sealed on chain from hour 25 (27 November 2026): `seal(25, 0x078c5921…f5a8)` in tx `0x752297d2990c72d8147283e91a0b053d5569f94dde27891610a4884b8b980385`, 68,073 gas. `tools/verify-seal.ts 25` passes all five checks. Hours 0 to 24 keep their published seal bytes and are not sealed after the fact.
