@@ -91,7 +91,7 @@ Cracked lines stay visible on the site. They are not deleted from the history.
 
 ## Lessons (F2)
 
-Status: built and tested, not deployed. The stake size and the reward pool are announced before the contract goes live.
+Status: contract deployed on 27 November 2026 at `0xedfca790630e6e674fb7156244b80b0a67195b80`; stake 1,150,000 $CRIBSHEET, reward 575,000. Lessons open when the reward pool is funded.
 
 A holder stakes $CRIBSHEET with one lesson (at most 280 bytes of plain text) and names the question kind it should help with. For three hours a copy of Crowd reads the lesson; each of those hours adds at least three questions of that kind outside the official score. The lesson is kept if the copy gets more right on target and no fewer elsewhere. Kept: stake back plus a reward. Otherwise the stake burns. The runner's role in that contract is a trust point and is described in [`SECURITY.md`](SECURITY.md).
 
