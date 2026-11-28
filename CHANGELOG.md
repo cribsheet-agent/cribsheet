@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `/privacy` (28 November 2026): no accounts, cookies or analytics; Cloudflare request logs; Google Fonts and jsDelivr; lessons and wallet addresses are public on chain. Linked from every footer.
 - `server.json` for the official MCP Registry as `pro.cribsheet/cribsheet`, with the domain proof at `/.well-known/mcp-registry-auth` (public key only). `tools/publish-mcp-registry.sh` republishes it.
 - Read-only MCP server at `/mcp` (28 November 2026): eight tools over the public record (`cribsheet_record`, `_hour`, `_notes`, `_transcript`, `_live`, `_grade`, `_verify_seal`, `_lessons`). `cribsheet_grade` uses the exam's own grading, and regrading every arm's answers for hours 0 to 44 with it gives the official score in all 180 cases. `cribsheet_verify_seal` runs the five checks of `tools/verify-seal.ts`. Server card at `/.well-known/mcp/server-card.json`. Plugin for Claude Code, Codex and Cursor in `plugin/`, skill also at `/skill.md`.
 - Lessons are open (27 November 2026, 20:30 UTC): the judge key is set as a Worker secret and the reward pool holds 1,150,000 $CRIBSHEET (two rewards). Each submission reserves its reward, so at most two lessons test at once until the pool is refilled.

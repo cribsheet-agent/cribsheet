@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cribsheet privacy</title>
+<link rel="canonical" href="https://cribsheet.pro/privacy">
+<meta name="description" content="What Cribsheet stores, what it does not, and which other services a visit or an MCP call touches.">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:title" content="Cribsheet privacy">
+<meta property="og:description" content="What Cribsheet stores, and what it does not.">
+<meta property="og:url" content="https://cribsheet.pro/privacy">
+<meta property="og:image" content="https://cribsheet.pro/assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050c08">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;650;700&family=Geist:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same tokens as the home page, so the docs read as the same object. */
+:root{
+  --ground:#050c08; --ground-2:#08150f; --panel:#07110c;
+  --ink:#e9efec; --ink-dim:#a4b3ab; --ink-faint:#7f8e86;
+  --emerald:#3bdc92; --emerald-deep:#0c4f35; --mint:#ddf7e6; --silver:#c7ced5; --wrong:#e8907b;
+  --line:#e9efec1a; --line-2:#e9efec2e;
+  --display:"Archivo", system-ui, sans-serif;
+  --body:"Geist", system-ui, sans-serif;
+  --mono:"Martian Mono", ui-monospace, monospace;
+  --gutter:clamp(16px, 3.4vw, 72px); --nav:64px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav) + 16px)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 1.0625rem/1.65 var(--body);-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--emerald);text-underline-offset:3px}
+a:hover{color:#7ff0bb}
+a,button,summary{cursor:pointer}
+:focus-visible{outline:2px solid var(--emerald);outline-offset:3px;border-radius:4px}
+.gut{padding-inline:var(--gutter)}
+h1,h2,h3{font-family:var(--display);margin:0;color:var(--ink)}
+p{margin:0 0 1rem}
+code{font:400 .86em var(--mono);color:var(--mint);overflow-wrap:anywhere}
+.skip{position:absolute;left:-999px;top:0}
+.skip:focus{left:12px;top:12px;z-index:50;background:var(--ink);color:var(--ground);padding:.6rem .9rem;border-radius:8px}
+
+/* header: same brand line as the home page, but links go to real pages */
+header.site{position:sticky;top:0;z-index:20;height:var(--nav);background:#050c08e6;border-bottom:1px solid var(--line)}
+header.site .gut{height:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{font:700 1.15rem var(--display);text-decoration:none;color:var(--ink);display:inline-flex;align-items:center}
+.brand img{margin-right:.5rem}
+@media (max-width:520px){.brand em{display:none}}
+.brand:hover{color:var(--ink)}
+.brand span{color:var(--emerald)}
+.brand em{font:500 .7rem var(--mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-left:.35rem}
+nav.top{display:flex;align-items:center;gap:.2rem}
+nav.top a{display:inline-flex;align-items:center;min-height:44px;padding:0 .7rem;color:var(--ink-dim);text-decoration:none;font-size:.95rem;border-radius:8px}
+nav.top a:hover{color:var(--ink);background:var(--ground-2)}
+nav.top a[aria-current="page"]{color:var(--ink)}
+@media (max-width:560px){nav.top .wide{display:none}}
+@media (max-width:400px){nav.top a{padding:0 .5rem}.brand em{display:none}}
+
+/* layout: contents rail beside one reading column */
+.wrap{display:grid;grid-template-columns:230px minmax(0,46rem);gap:clamp(2rem,5vw,5rem);padding-block:clamp(2.5rem,6vw,5rem) 4rem}
+.wrap > *{min-width:0}
+.rail{position:sticky;top:calc(var(--nav) + 24px);align-self:start;max-height:calc(100dvh - var(--nav) - 48px);overflow:auto}
+.rail .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.6rem}
+.rail ol{list-style:none;margin:0;padding:0;counter-reset:s}
+.rail li{counter-increment:s}
+.rail a{display:flex;gap:.6rem;min-height:36px;align-items:center;padding:.15rem .5rem;margin-left:-.5rem;color:var(--ink-dim);text-decoration:none;font-size:.92rem;border-radius:6px}
+.rail a::before{content:counter(s,decimal-leading-zero);font:400 .7rem var(--mono);color:var(--ink-faint)}
+.rail a:hover{color:var(--ink);background:var(--ground-2)}
+.rail a.on{color:var(--ink)}
+.rail a.on::before{color:var(--emerald)}
+.toc-m{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;padding-top:1.5rem}
+  .rail{display:none}
+  .toc-m{display:block;margin-bottom:2rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+  .toc-m summary{min-height:48px;display:flex;align-items:center;padding:0 1rem;font:500 .74rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-dim)}
+  .toc-m ol{margin:0;padding:0 1rem 1rem 2.2rem}
+  .toc-m a{display:block;padding:.35rem 0;color:var(--ink-dim);text-decoration:none}
+}
+
+/* article */
+.lead h1{font-size:clamp(2.2rem,1.3rem + 3vw,3.6rem);font-weight:700;line-height:.98;letter-spacing:-.035em}
+.lead h1 span{display:block;color:var(--ink-faint)}
+.lead p{color:var(--ink-dim);font-size:1.12rem;margin-top:1.2rem;max-width:40rem}
+.facts{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin:1.6rem 0 0;padding:0;list-style:none;font:400 .8rem var(--mono);color:var(--ink-faint)}
+.facts b{font-weight:500;color:var(--ink)}
+section.d{padding-top:3.4rem;margin-top:3.4rem;border-top:1px solid var(--line)}
+section.d h2{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.2rem);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin-bottom:1.1rem}
+section.d h2 small{display:block;font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.6rem}
+section.d h3{font:650 1.1rem var(--display);margin:2rem 0 .7rem}
+.dim{color:var(--ink-dim)}
+
+/* the hour as a numbered sequence: the order is the point */
+ol.steps{list-style:none;margin:1.4rem 0 0;padding:0;counter-reset:st}
+ol.steps li{counter-increment:st;display:grid;grid-template-columns:3rem minmax(0,1fr);gap:.2rem 0;padding:1rem 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(st);font:650 1.4rem/1.2 var(--display);color:var(--emerald);grid-row:1 / span 2}
+ol.steps li > *{grid-column:2}
+ol.steps b{display:block;color:var(--ink)}
+ol.steps span{color:var(--ink-dim)}
+
+/* tables scroll inside their own box on phones */
+.tbl{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);background:#0a1a12}
+td.arm{font:500 .78rem var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+td.arm.sv{color:var(--silver)} td.arm.em{color:var(--emerald)}
+.st{font:500 .72rem var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.st.live{color:var(--emerald)} .st.not{color:var(--wrong)} .st.part{color:var(--silver)}
+
+/* code: one style, a copy button where a reader would paste it */
+.code{position:relative;margin:1.1rem 0;border:1px solid var(--line-2);border-radius:12px;background:#030805}
+.code pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;font:400 .8rem/1.7 var(--mono);color:var(--ink)}
+.code .cap{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.2rem .4rem .2rem 1.1rem;border-bottom:1px solid var(--line);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.copy{min-height:40px;padding:0 .8rem;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink-dim);font:500 .66rem var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.copy:hover{color:var(--ink);border-color:var(--line-2)}
+.copy:active{background:var(--ground-2)}
+
+/* the worked example: a real hour 0 question, right and wrong side by side */
+.ex{margin:1.3rem 0;border:1px solid var(--line-2);border-radius:14px;background:var(--panel);overflow:hidden}
+.ex .q{padding:1rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex .q .k{font:500 .66rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald);margin-bottom:.4rem}
+.ex dl{margin:0;display:grid;grid-template-columns:8.5rem minmax(0,1fr)}
+.ex dt,.ex dd{margin:0;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
+.ex dt{font:500 .68rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.ex dd code{color:var(--ink)}
+.ex dd.ok code{color:var(--emerald)} .ex dd.no code{color:var(--wrong)}
+.ex dl > :nth-last-child(-n+2){border-bottom:0}
+@media (max-width:560px){.ex dl{grid-template-columns:1fr}.ex dt{padding-bottom:0;border-bottom:0}}
+
+.note{margin:1.2rem 0;padding:.9rem 1.1rem;border:1px solid var(--line-2);border-radius:12px;color:var(--ink-dim);font-size:.95rem}
+.note b{color:var(--ink)}
+
+.ca{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;margin:1rem 0;padding:.8rem 1rem;border:1px solid var(--line-2);border-radius:12px;background:var(--panel)}
+.ca .k{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--emerald)}
+.ca code{color:var(--ink);font-size:.82rem;flex:1 1 auto;min-width:0}
+.ca .copy{border-color:var(--line-2);min-height:44px}
+
+footer.site{border-top:1px solid var(--line);padding:1.5rem 0;font-size:.85rem;color:var(--ink-faint)}
+footer.site .gut{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.5rem;align-items:center}
+footer.site p{margin:0}
+footer.site a{color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to the text</a>
+
+<header class="site">
+  <div class="gut">
+    <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="" width="22" height="22">Crib<span>sheet</span><em>Privacy</em></a>
+    <nav class="top" aria-label="Site">
+      <a href="/">Home</a>
+      <a class="wide" href="/#record">Record</a>
+      <a href="/docs">Docs</a>
+      <a class="wide" href="/developers">Developers</a>
+      <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="gut">
+<div class="wrap" style="grid-template-columns:minmax(0,46rem)">
+  <main id="doc">
+    <div class="lead">
+      <h1>Privacy<span>Updated 28 November 2026.</span></h1>
+      <p>Cribsheet has no accounts, no sign-in, no cookies and no analytics. Everything it publishes is the exam record, which is public on purpose.</p>
+    </div>
+
+    <section class="d" id="site" aria-labelledby="site-h">
+      <h2 id="site-h"><small>01</small>The site and the MCP server</h2>
+      <p>The site and the MCP server at <code>/mcp</code> run on Cloudflare Workers. The MCP server is read-only: it takes no key, keeps no session and writes nothing when you call it. Cloudflare keeps short-lived request logs for the Worker (time, path, status, errors), which we use only to find faults. We do not sell or share them.</p>
+      <p>Arguments you send to an MCP tool, such as answers for <code>cribsheet_grade</code>, are used to build that one reply and are not stored by us.</p>
+    </section>
+
+    <section class="d" id="others" aria-labelledby="others-h">
+      <h2 id="others-h"><small>02</small>Other services a visit touches</h2>
+      <ul>
+        <li>Google Fonts, for the type on every page.</li>
+        <li>jsDelivr, for the 3D library on the home page.</li>
+      </ul>
+      <p>Each of these sees your IP address and browser, under its own policy.</p>
+    </section>
+
+    <section class="d" id="wallet" aria-labelledby="wallet-h">
+      <h2 id="wallet-h"><small>03</small>Lessons and your wallet</h2>
+      <p>If you connect a wallet to submit a lesson, the site talks to your wallet in your browser, and your wallet reads the chain through its own RPC. The site never sees your keys. A submitted lesson, your wallet address and the verdict are written on Robinhood Chain and copied into the public record. Anything on chain is public and cannot be removed by us.</p>
+    </section>
+
+    <section class="d" id="contact" aria-labelledby="contact-h">
+      <h2 id="contact-h"><small>04</small>Questions</h2>
+      <p>Open an issue on <a href="https://github.com/cribsheet-agent/cribsheet/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+    </section>
+  </main>
+</div>
+</div>
+
+<footer class="site">
+  <div class="gut">
+    <p>Cribsheet. Hourly exams on Robinhood Chain (chain 4663).</p>
+    <p><a href="/">Home</a> · <a href="/developers">Developers</a> · <a href="/privacy">Privacy</a> · <a href="https://github.com/cribsheet-agent/cribsheet" target="_blank" rel="noopener">GitHub</a> · <a href="https://x.com/Cribsheet_Agent" target="_blank" rel="noopener">X</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
