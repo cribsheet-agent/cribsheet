@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "cribsheet": { "type": "http", "url": "https://cribsheet.pro/mcp" }
+  }
+}

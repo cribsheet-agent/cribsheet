@@ -1,5 +1,6 @@
 // The cribsheet.pro Worker.
-//  - fetch: the site (static assets) and the public record under /data/, read from R2.
+//  - fetch: the site (static assets), the public record under /data/, read from R2, and a
+//    read-only MCP server over that record at /mcp.
 //  - ExamHour: one exam hour as a Workflow. Each phase and each answer is a step, so an hour
 //    that takes longer than a cron invocation may run still finishes, and a failed step is retried.
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
@@ -7,7 +8,9 @@ import { workersAiBinding } from '../lib/model.ts';
 import { ARMS, type Arm } from '../arms/blocks.ts';
 import type { Attempt } from '../arms/agent.ts';
 import { sealOnChain } from '../runner/seal-chain.ts';
-import { setRpcUrl } from '../lib/rpc.ts';
+import { ethCall, setRpcUrl } from '../lib/rpc.ts';
+import { selector } from '../lib/keccak.ts';
+import { mcpFetch, serverCard, type Reader } from '../runner/mcp.ts';
 import { answer, answerLesson, finish, lessonQuestionCount, prepare, readState, recordLessons, recordMissed, type LessonsSource, type Prepared, type Store } from '../runner/hour.ts';
 import { chainSettler, readBoard } from '../runner/lessons-chain.ts';
 import { settlePending, type Board } from '../runner/lessons.ts';
@@ -178,9 +181,23 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     if (url.pathname.startsWith('/data/')) return data(url.pathname.slice('/data/'.length), req, env);
+    if (url.pathname === '/mcp' || url.pathname === '/mcp/') return mcpFetch(req, reader(env));
+    if (url.pathname === '/.well-known/mcp/server-card.json')
+      return new Response(JSON.stringify(serverCard(), null, 1), { headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=300' } });
     return env.ASSETS.fetch(req);
   },
 } satisfies ExportedHandler<Env>;
+
+/** What the MCP tools read: the same public files as /data/, and the seal root on chain. */
+function reader(env: Env): Reader {
+  if (env.RPC_URL) setRpcUrl(env.RPC_URL);
+  const store = r2Store(env.DATA);
+  return {
+    get: path => path.startsWith('_') || path.includes('..') ? Promise.resolve(null) : store.get(path),
+    live: () => composeLive(store),
+    rootOf: hour => ethCall(env.SEALS_ADDRESS ?? '0xfe6d4f39ca6732af967b941e8051d773f2c6011a', selector('rootOf(uint256)') + hour.toString(16).padStart(64, '0')),
+  };
+}
 
 async function data(path: string, req: Request, env: Env): Promise<Response> {
   const headers = new Headers({ 'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff' });

@@ -168,6 +168,7 @@ footer.site a{color:var(--ink-dim)}
     <p class="k">On this page</p>
     <ol id="rail">
       <li><a href="#read">Read the record</a></li>
+      <li><a href="#mcp">From your agent (MCP)</a></li>
       <li><a href="#score">Score your agent</a></li>
       <li><a href="#run">Run an hour yourself</a></li>
       <li><a href="#manual">Test your own manual</a></li>
@@ -181,6 +182,7 @@ footer.site a{color:var(--ink-dim)}
       <summary>On this page</summary>
       <ol>
         <li><a href="#read">Read the record</a></li>
+        <li><a href="#mcp">From your agent (MCP)</a></li>
         <li><a href="#score">Score your agent</a></li>
         <li><a href="#run">Run an hour yourself</a></li>
         <li><a href="#manual">Test your own manual</a></li>
@@ -215,8 +217,27 @@ footer.site a{color:var(--ink-dim)}
       <p>The field list is in <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/spec/results.schema.json" target="_blank" rel="noopener">spec/results.schema.json</a>. Fields can be added but are never renamed, so a parser written today keeps working. All the paths are listed in the <a href="/docs#data">docs</a>.</p>
     </section>
 
+    <section class="d" id="mcp" aria-labelledby="mcp-h">
+      <h2 id="mcp-h"><small>02</small>From your agent (MCP)</h2>
+      <p>The same record as an MCP server at <code>https://cribsheet.pro/mcp</code>. Read-only and free: no key, nothing signs or pays. Ask your agent things like "why did Self miss question 3 in hour 40?" or "does hour 44 match its seal?" and it reads the files above to answer.</p>
+      <div class="code"><div class="cap"><span>Claude Code</span><button class="copy" type="button" data-copy="m1">Copy</button></div><pre id="m1">claude mcp add --transport http cribsheet https://cribsheet.pro/mcp</pre></div>
+      <div class="code"><div class="cap"><span>Claude Code plugin (server and skill)</span><button class="copy" type="button" data-copy="m2">Copy</button></div><pre id="m2">/plugin marketplace add cribsheet-agent/cribsheet
+/plugin install cribsheet@cribsheet</pre></div>
+      <div class="code"><div class="cap"><span>Cursor · .cursor/mcp.json</span><button class="copy" type="button" data-copy="m3">Copy</button></div><pre id="m3">{ "mcpServers": { "cribsheet": { "url": "https://cribsheet.pro/mcp" } } }</pre></div>
+      <div class="code"><div class="cap"><span>Skill only (any agent that reads skills)</span><button class="copy" type="button" data-copy="m4">Copy</button></div><pre id="m4">npx skills add cribsheet-agent/cribsheet</pre></div>
+      <ul>
+        <li><code>cribsheet_record</code>: scores of recent hours, cost, seal status and totals.</li>
+        <li><code>cribsheet_hour</code>: one hour's questions, keys, key calls and every arm's answer.</li>
+        <li><code>cribsheet_notes</code>, <code>cribsheet_transcript</code>: what an arm carried in, and the tool calls behind each answer.</li>
+        <li><code>cribsheet_grade</code>: your agent's answers graded with the exam's rules, next to the four arms.</li>
+        <li><code>cribsheet_verify_seal</code>: the five checks of <code>tools/verify-seal.ts</code>, against the chain.</li>
+        <li><code>cribsheet_live</code>, <code>cribsheet_lessons</code>: the hour running now and the lessons board.</li>
+      </ul>
+      <p>The skill tells the agent how to read the record: an arm's answer is not a fact, the key is. It is also at <a href="/skill.md">/skill.md</a>.</p>
+    </section>
+
     <section class="d" id="score" aria-labelledby="score-h">
-      <h2 id="score-h"><small>02</small>Score your agent</h2>
+      <h2 id="score-h"><small>03</small>Score your agent</h2>
       <p>The questions stay answerable after their hour. A question whose answer can change says which block it means ("as of block 123627641"), so any agent with Robinhood Chain RPC access can sit past hours and be graded the way the four arms were. This script takes the last 40 questions, asks your agent, grades it with the same normalising the exam uses and prints your score next to the four arms on the same questions.</p>
       <div class="code"><div class="cap"><span>score.mjs · Node 18 or later</span><button class="copy" type="button" data-copy="s1">Copy</button></div><pre id="s1">// Grades your agent on past Cribsheet questions, the way the exam grades its four arms.
 const FORMAT = {
@@ -261,7 +282,7 @@ console.log(`right out of ${questions.length}:`, right);</pre></div>
     </section>
 
     <section class="d" id="run" aria-labelledby="run-h">
-      <h2 id="run-h"><small>03</small>Run an hour yourself</h2>
+      <h2 id="run-h"><small>04</small>Run an hour yourself</h2>
       <p>The full exam runs on your machine: it reads the last full UTC hour of Pons launches, writes eight questions, reads the keys two ways, asks the four arms, grades them and rewrites Self's notes. It needs Node 24 or later and a Cloudflare account with Workers AI. One hour on <code>gpt-oss-120b</code> has cost $0.21 to $0.26 so far.</p>
       <div class="code"><div class="cap"><span>Get the code</span><button class="copy" type="button" data-copy="x1">Copy</button></div><pre id="x1">git clone https://github.com/cribsheet-agent/cribsheet
 cd cribsheet &amp;&amp; npm ci</pre></div>
@@ -271,7 +292,7 @@ cd cribsheet &amp;&amp; npm ci</pre></div>
     </section>
 
     <section class="d" id="manual" aria-labelledby="manual-h">
-      <h2 id="manual-h"><small>04</small>Test your own manual</h2>
+      <h2 id="manual-h"><small>05</small>Test your own manual</h2>
       <p>The Manual arm reads <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/arms/manual.md" target="_blank" rel="noopener">arms/manual.md</a> and nothing else. Over hours 0 to 22 that page was the difference between 1 right answer (Blank) and 107 (Manual), with the same model, tools and budget. To find out whether your instructions do better, write your own version and run it.</p>
       <div class="code"><div class="cap"><span>Edit the manual, embed it, run</span><button class="copy" type="button" data-copy="m1">Copy</button></div><pre id="m1">$EDITOR arms/manual.md
 node scripts/embed.mjs
@@ -281,7 +302,7 @@ CF_ACCOUNT_ID=... CF_API_TOKEN=... node runner/cli.ts --dir data-mine</pre></div
     </section>
 
     <section class="d" id="misses" aria-labelledby="misses-h">
-      <h2 id="misses-h"><small>05</small>Where agents miss</h2>
+      <h2 id="misses-h"><small>06</small>Where agents miss</h2>
       <p>Your agent will likely make the same mistakes. Each one below is in the public record and can be found with the queries in section 01.</p>
       <div class="tbl"><table>
         <thead><tr><th>Miss</th><th>What happened</th></tr></thead>
@@ -296,11 +317,11 @@ CF_ACCOUNT_ID=... CF_API_TOKEN=... node runner/cli.ts --dir data-mine</pre></div
     </section>
 
     <section class="d" id="limits" aria-labelledby="limits-h">
-      <h2 id="limits-h"><small>06</small>Limits</h2>
+      <h2 id="limits-h"><small>07</small>Limits</h2>
       <ul>
-        <li>The runner calls Cloudflare Workers AI only. For any other model or agent, use the script in <a href="#score">section 02</a>.</li>
+        <li>The runner calls Cloudflare Workers AI only. For any other model or agent, use the script in <a href="#score">section 03</a>.</li>
         <li>Every question is about the Pons launch factory on Robinhood Chain (chain 4663).</li>
-        <li>Lessons for Crowd and the Ask API are planned, not built. The <a href="/docs#status">status table</a> lists what is live.</li>
+        <li>Lessons for Crowd are live; the Ask API is planned, not built. The <a href="/docs#status">status table</a> lists what is live.</li>
       </ul>
       <p>Pull requests are welcome: new question kinds, grading fixes, tools that read the record. See <a href="https://github.com/cribsheet-agent/cribsheet/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">CONTRIBUTING.md</a>.</p>
     </section>

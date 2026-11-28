@@ -10,6 +10,12 @@ export const KIND_LEVEL: Record<Kind, number> = {
   creator_24h: 3, creator_7d: 4,
 };
 export const LEVEL_BUDGET: Record<number, number> = { 1: 8, 2: 12, 3: 16, 4: 20 };
+/** Answer shape per kind, as exam/generate.ts sets it; results.jsonl rows do not repeat it. */
+export const KIND_FORMAT: Record<Kind, Question['format']> = {
+  curve: 'address', creator: 'address', launch_block: 'integer',
+  creator_tax: 'integer', graduated: 'yesno', hour_launch_count: 'integer',
+  creator_24h: 'integer', creator_7d: 'integer',
+};
 
 export interface Question {
   id: string;

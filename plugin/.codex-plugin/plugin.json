@@ -1,0 +1,14 @@
+{
+  "name": "cribsheet",
+  "version": "0.1.0",
+  "description": "Read the record of Cribsheet, an hourly on-chain AI exam on Robinhood Chain: scores of four agents that differ only in their notes, keys read from the chain, every answer and tool call, on-chain seals, lessons, and grading for your own agent. Read-only and free.",
+  "author": { "name": "Cribsheet", "url": "https://cribsheet.pro" },
+  "homepage": "https://cribsheet.pro",
+  "repository": "https://github.com/cribsheet-agent/cribsheet",
+  "documentationUrl": "https://cribsheet.pro/developers#mcp",
+  "license": "MIT",
+  "icon": "./assets/logo.png",
+  "keywords": ["mcp","agents","benchmark","evaluation","robinhood-chain","onchain","llm"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
