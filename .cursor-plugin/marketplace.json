@@ -1,0 +1,6 @@
+{
+  "name": "cribsheet",
+  "owner": { "name": "Cribsheet" },
+  "metadata": { "description": "Cribsheet for Cursor: the public record of an hourly on-chain AI exam, read-only.", "version": "0.1.0" },
+  "plugins": [ { "name": "cribsheet", "source": "./plugin", "description": "Read the record of Cribsheet, an hourly on-chain AI exam on Robinhood Chain: scores of four agents that differ only in their notes, keys read from the chain, every answer and tool call, on-chain seals, lessons, and grading for your own agent. Read-only and free." } ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "cribsheet",
+  "interface": { "displayName": "Cribsheet" },
+  "plugins": [
+    {
+      "name": "cribsheet",
+      "source": { "source": "local", "path": "./plugin" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Developer Tools"
+    }
+  ]
+}

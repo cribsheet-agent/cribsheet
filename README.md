@@ -33,6 +33,7 @@ Live since 26 November 2026: the hourly schedule is on and hour 0 is graded. $CR
 | Seal contract | `CribsheetSeals` deployed 27 Nov 2026 at `0xfe6d4f39ca6732af967b941e8051d773f2c6011a`, source verified (Sourcify exact match); every hour sealed on chain from hour 25 (27 Nov 2026, 15:07 UTC) | [`contracts/`](contracts/) |
 | Seal check | built | [`tools/verify-seal.ts`](tools/verify-seal.ts) |
 | Lessons (`CribsheetLessons`, Crowd copy on extra questions, verdicts, site flow) | live since 27 Nov 2026: contract `0xedfca790630e6e674fb7156244b80b0a67195b80` (source verified), judge key set, reward pool funded with 1,150,000 $CRIBSHEET (two rewards; refilled when a lesson is kept) | [`contracts/`](contracts/), [`runner/lessons.ts`](runner/lessons.ts) |
+| MCP server (read-only) and agent plugin | live since 28 Nov 2026 at `https://cribsheet.pro/mcp`: record, hours, notes, transcripts, live hour, grading, seal check, lessons board; plugin for Claude Code, Codex and Cursor, skill at `/skill.md` | [`runner/mcp.ts`](runner/mcp.ts), [`plugin/`](plugin/) |
 | Ask API | not built | F2 |
 | $CRIBSHEET | launched on Robinhood Chain | `0x685b3aebdb99368d0bdafc6edd7a38fe2244c45f` |
 
@@ -42,7 +43,25 @@ This table is updated in the same commit that changes a row. If the site or a po
 
 - **F0**: local runner, question families 1 and 2 for the Pons launch factory, keys read two ways, the four arms, measured cost per hour. Done when 24 hours run with no missed hour.
 - **F1**: hourly runner on Cloudflare Workers, public `/data/`, `CribsheetSeals` deployed and verified, fact check on every hour. Done when about 48 hours of data are public.
-- **F2**: `CribsheetLessons` (stake a lesson for Crowd; live), Ask API over x402, MCP server.
+- **F2**: `CribsheetLessons` (stake a lesson for Crowd; live), read-only MCP server (live), Ask API over x402.
+
+## Use it from your agent
+
+A read-only MCP server over the public record runs at `https://cribsheet.pro/mcp`. It needs no key and nothing in it signs or pays.
+
+Claude Code, as a plugin with the skill:
+
+```
+/plugin install cribsheet --marketplace cribsheet-agent/cribsheet
+```
+
+Or the server alone:
+
+```bash
+claude mcp add --transport http cribsheet https://cribsheet.pro/mcp
+```
+
+Codex: `codex plugin marketplace add cribsheet-agent/cribsheet`, then `codex plugin add cribsheet@cribsheet`. Cursor: add `{ "mcpServers": { "cribsheet": { "url": "https://cribsheet.pro/mcp" } } }` to `.cursor/mcp.json`. The skill alone: `npx skills add cribsheet-agent/cribsheet`. More in [/developers](https://cribsheet.pro/developers#mcp).
 
 ## Layout
 
@@ -52,8 +71,9 @@ lib/        JSON-RPC client, keccak-256, ABI words, model client
 exam/       Pons factory readers, question generator, keys read two ways, grading
 arms/       shared prompt, the four last blocks, the Manual, tools, agent loop, notes rewrite
 checker/    fact check of the notes against the chain
-runner/     one exam hour in three phases (prepare, answer, finish), seal bytes, local CLI
-worker/     the cribsheet.pro Worker: site, /data/ from R2, the exam hour as a Workflow
+runner/     one exam hour in three phases (prepare, answer, finish), seal bytes, local CLI, MCP tools
+worker/     the cribsheet.pro Worker: site, /data/ from R2, /mcp, the exam hour as a Workflow
+plugin/     agent plugin (Claude Code, Codex, Cursor): the MCP server and a skill
 contracts/  CribsheetSeals (Foundry) and its tests
 tools/      verify-seal: check a sealed hour against the site and the chain
 spec/       formats of the public files under /data/
