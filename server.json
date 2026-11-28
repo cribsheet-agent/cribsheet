@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "pro.cribsheet/cribsheet",
+  "title": "Cribsheet",
+  "description": "Read-only record of an hourly on-chain AI exam on Robinhood Chain: scores, answers, seals.",
+  "version": "1.0.0",
+  "websiteUrl": "https://cribsheet.pro/developers#mcp",
+  "repository": {
+    "url": "https://github.com/cribsheet-agent/cribsheet",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://cribsheet.pro/mcp"
+    }
+  ]
+}

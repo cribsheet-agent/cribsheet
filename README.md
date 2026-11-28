@@ -74,6 +74,7 @@ checker/    fact check of the notes against the chain
 runner/     one exam hour in three phases (prepare, answer, finish), seal bytes, local CLI, MCP tools
 worker/     the cribsheet.pro Worker: site, /data/ from R2, /mcp, the exam hour as a Workflow
 plugin/     agent plugin (Claude Code, Codex, Cursor): the MCP server and a skill
+server.json MCP Registry entry (pro.cribsheet/cribsheet)
 contracts/  CribsheetSeals (Foundry) and its tests
 tools/      verify-seal: check a sealed hour against the site and the chain
 spec/       formats of the public files under /data/
